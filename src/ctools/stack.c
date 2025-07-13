@@ -4,10 +4,16 @@
 
 typedef struct stack_node {
     void* value;
-    stack_node* next;
+    struct stack_node* next;
 } stack_node;
 
-void stack_create(stack* s) {
+typedef struct stack {
+    stack_node* top;
+    int size;
+} stack;
+
+stack* stack_create() {
+    stack* s = malloc(sizeof(stack));
     s->top = NULL;
 }
 
@@ -19,6 +25,10 @@ void stack_destroy(stack* stack) {
     }
 }
 
+int stack_size(const stack* stack) {
+    return stack->size;
+}
+
 void stack_push(stack* stack, void* value) {
     // Create the new node
     stack_node* new_node = (stack_node*) malloc(sizeof(stack_node));
@@ -27,6 +37,9 @@ void stack_push(stack* stack, void* value) {
 
     // Push the new node to the top of the stack
     stack->top = new_node;
+
+    // Increase the size record
+    ++stack->size;
 }
 
 void* stack_pop(stack* stack) {
@@ -39,6 +52,9 @@ void* stack_pop(stack* stack) {
 
     // Copy the top value, to return it at the end
     void* pop_node_value = stack->top->value;
+
+    // Decrease the size record
+    --stack->size;
 
     // Remove the top of the stack
     stack->top = stack->top->next;
@@ -77,4 +93,7 @@ void stack_push_sort(stack* stack, void* value, int (*comp)(const void* lhs, con
     // prev -> new_node -> it.
     new_node->next = it;
     prev->next = new_node;
+
+    // Increase the size record
+    ++stack->size;
 }

@@ -3,4 +3,4 @@ target_sources(${CTOOLS_LIB} PUBLIC
     stack.c
 )
 
-# add_subdirectory(btree_ext)
+add_subdirectory(btree_ext)

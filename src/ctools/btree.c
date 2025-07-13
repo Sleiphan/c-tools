@@ -3,11 +3,27 @@
 #include <stddef.h> // For the definition of NULL
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-void btree_node_create(btree_node* node) {
+btree_node* btree_node_create() {
+    btree_node* node = malloc(sizeof(btree_node));
+    
+    if (node == NULL)
+        return NULL;
+
+    btree_node_init(node);
+
+    return node;
+}
+
+void btree_node_init(btree_node* node) {
     node->hi = NULL;
     node->lo = NULL;
     node->value = NULL;
+}
+
+void btree_node_destroy(btree_node* node) {
+    free(node);
 }
 
 int is_leaf_node(const btree_node* node) {
@@ -24,12 +40,14 @@ int btree_depth_first_search(btree_node* node, int (*callback)(btree_node* node)
     if (result)
         return result;
 
-    result = btree_depth_first_search(node->lo, callback);
+    if (node->lo)
+        result = btree_depth_first_search(node->lo, callback);
 
     if (result)
         return result;
 
-    result = btree_depth_first_search(node->hi, callback);
+    if (node->hi)
+        result = btree_depth_first_search(node->hi, callback);
 
     return result;
 }

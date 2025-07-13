@@ -7,10 +7,12 @@ typedef struct btree_node {
     struct btree_node* lo;
 } btree_node;
 
+
+btree_node* btree_node_create();
 /// @brief Initializes all members of a btree_node to NULL.
 /// @param node The node to initialize
-void btree_node_create(btree_node* node);
-// void btree_node_destroy(btree_node* node);
+void btree_node_init(btree_node* node);
+void btree_node_destroy(btree_node* node);
 
 /// @brief Checks whether a tree node is a leaf node.
 /// A btree_node is a leaf node when its child pointers are set to NULL, meaning that it has no children.

@@ -18,6 +18,7 @@
         "compare": "c",
         "cstdint": "c",
         "stdint.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "sstream": "cpp"
     }
 }
