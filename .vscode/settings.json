@@ -16,6 +16,8 @@
         "utility": "c",
         "cstdlib": "c",
         "compare": "c",
-        "cstdint": "c"
+        "cstdint": "c",
+        "stdint.h": "c",
+        "stdlib.h": "c"
     }
 }
