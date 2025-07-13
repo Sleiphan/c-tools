@@ -7,7 +7,7 @@ endif()
 project(Temp_project
     VERSION 0.1
     DESCRIPTION "An example project."
-    LANGUAGES CXX)
+    LANGUAGES CXX C)
 
 enable_testing()
 
@@ -15,12 +15,13 @@ enable_testing()
 set(CMAKE_PDB_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/pdb)
 
 
-set(LIBRARY "Example_library")
-add_library(${LIBRARY} STATIC)
-target_include_directories(${LIBRARY} PUBLIC include)
-set_target_properties(${LIBRARY}
+
+set(CTOOLS_LIB "ctools")
+add_library(${CTOOLS_LIB} STATIC)
+target_include_directories(${CTOOLS_LIB} PUBLIC include)
+set_target_properties(${CTOOLS_LIB}
     PROPERTIES 
-    LINKER_LANGUAGE CXX
+    LINKER_LANGUAGE C
     ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/../bin
 )
 

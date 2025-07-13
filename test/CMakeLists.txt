@@ -1,5 +1,10 @@
 
-set(TEST "sum-T")
-add_executable(${TEST} sum-T.cpp)
-target_link_libraries(${TEST} PRIVATE ${LIBRARY} GTest::gtest_main)
+set(TEST "stack")
+add_executable(${TEST} stack.cpp)
+target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
 gtest_discover_tests(${TEST})
+
+# set(TEST "btree")
+# add_executable(${TEST} btree.cpp)
+# target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
+# gtest_discover_tests(${TEST})
