@@ -58,12 +58,28 @@ void stack_shutdown(stack* stack) {
 }
 
 void stack_destroy(stack* stack) {
+    // Aquire lock
+    pthread_mutex_lock(&stack->lock);
+    
+    // Destroy all nodes in the stack
     while (stack->top != NULL) {
+        // Copy the address of the top node
         stack_node* pop_node = stack->top;
+
+        // Pop the top node from the stack
         stack->top = stack->top->next;
+
+        // Destroy the node
         stack_node_destroy(pop_node);
     }
 
+    // Unlock
+    pthread_mutex_lock(&stack->lock);
+
+    // Destroy the lock
+    pthread_mutex_destroy(&stack->lock);
+
+    // De-allocate the stack struct
     free(stack);
 }
 
