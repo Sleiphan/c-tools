@@ -74,7 +74,7 @@ void stack_destroy(stack* stack) {
     }
 
     // Unlock
-    pthread_mutex_lock(&stack->lock);
+    pthread_mutex_unlock(&stack->lock);
 
     // Destroy the lock
     pthread_mutex_destroy(&stack->lock);
