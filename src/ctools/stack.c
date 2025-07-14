@@ -161,6 +161,13 @@ int stack_push_sort(stack* stack, void* value, int (*comp)(const void* lhs, cons
     // Lock
     pthread_mutex_lock(&stack->lock);
 
+    // If the stack is shutting down, skip
+    if (stack->shutting_down) {
+        pthread_mutex_unlock(&stack->lock);
+        stack_node_destroy(new_node);
+        return 2;
+    }
+
     stack_node** prev = &stack->top;
     stack_node* it = stack->top;
 
