@@ -41,21 +41,26 @@ typedef struct queue {
 
 
 queue* queue_create() {
+    // Allocate memory for the queue struct
     queue* q = (queue*) malloc(sizeof(queue));
-    if (!q) return NULL;
+    if (!q)
+        return NULL;
 
+    // Allocate the placeholder node
     queue_node* initial_node = queue_node_create();
     if (!initial_node) {
         free(q);
         return NULL;
     }
 
+    // Initialize the lock
     if (pthread_mutex_init(&q->lock, NULL)) {
         queue_node_destroy(initial_node);
         free(q);
         return NULL;
     }
 
+    // Initialize the condition variable
     if (pthread_cond_init(&q->pop_cond, NULL)) {
         pthread_mutex_destroy(&q->lock);
         queue_node_destroy(initial_node);
@@ -63,36 +68,65 @@ queue* queue_create() {
         return NULL;
     }
 
+    // Assign initial state
     q->back = q->front = initial_node;
     q->shutting_down = false;
 
+    // Return the new queue
     return q;
 }
 
 void queue_shutdown(queue* queue) {
+    // Lock
     pthread_mutex_lock(&queue->lock);
+
+    // Set the shutdown flag
     queue->shutting_down = true;
+
+    // Wake all threads waiting to pop a node
     pthread_cond_broadcast(&queue->pop_cond);
+
+    // Unlock
     pthread_mutex_unlock(&queue->lock);
 }
 
 void queue_destroy(queue* queue) {
+    // The iterator for removing all nodes
     queue_node* node = queue->front;
 
+    // Aquire lock
+    pthread_mutex_lock(&queue->lock);
+
+    // Destroy all nodes in the queue
     while (node) {
         queue_node* next = node->next;
         queue_node_destroy(node);
         node = next;
     }
 
+    // Unlock
+    pthread_mutex_unlock(&queue->lock);
+
+    // Destroy mutex and condition variable
     pthread_mutex_destroy(&queue->lock);
     pthread_cond_destroy(&queue->pop_cond);
 
+    // Free the queue struct
     free(queue);
 }
 
-int queue_empty(queue* queue) {
+int queue_empty_unlocked(queue* queue) {
     return queue->front == queue->back;
+}
+
+int queue_empty(queue* queue) {
+    pthread_mutex_lock(&queue->lock);
+
+    int empty = queue_empty_unlocked(queue);
+
+    pthread_mutex_unlock(&queue->lock);
+
+    return empty;
 }
 
 
@@ -106,6 +140,7 @@ int queue_push(queue* queue, void* value) {
     // Only one thread may push at once
     pthread_mutex_lock(&queue->lock);
 
+    // Cancel the operation if the queue is shutting down
     if (queue->shutting_down) {
         pthread_mutex_unlock(&queue->lock);
         queue_node_destroy(new_node);
@@ -158,7 +193,7 @@ void* queue_pop(queue* queue) {
     // Only one thread may pop at once
     pthread_mutex_lock(&queue->lock);
     
-    if (queue_empty(queue)) {
+    if (queue_empty_unlocked(queue)) {
         pthread_mutex_unlock(&queue->lock);
         return NULL;
     }
