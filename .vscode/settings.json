@@ -19,6 +19,12 @@
         "cstdint": "c",
         "stdint.h": "c",
         "stdlib.h": "c",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "deque": "c",
+        "forward_list": "c",
+        "list": "c",
+        "vector": "c",
+        "string_view": "c",
+        "span": "c"
     }
 }

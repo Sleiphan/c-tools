@@ -15,6 +15,7 @@ typedef struct stack {
 stack* stack_create() {
     stack* s = malloc(sizeof(stack));
     s->top = NULL;
+    s->size = 0;
 }
 
 void stack_destroy(stack* stack) {
