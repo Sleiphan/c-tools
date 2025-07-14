@@ -105,14 +105,16 @@ TEST(stack, push_sort_insert_into_empty_stack) {
 
     stack* s = stack_create();
     
-    // Push the insertion value into the stack
-    stack_push_sort(s, &insertion_value, stack_push_sort_tests_comp);
+    for (int i = 0; i < 10; i++) {
+        // Push the insertion value into the stack
+        stack_push_sort(s, &insertion_value, stack_push_sort_tests_comp);
 
-    // Pop the value into the 'actual' variable
-    actual = *((int*)stack_pop(s));
+        // Pop the value into the 'actual' variable
+        actual = *((int*)stack_pop(s));
 
-    // Compare actual value with expected value
-    EXPECT_EQ(actual, expected);
+        // Compare actual value with expected value
+        EXPECT_EQ(actual, expected);
+    }
     
     // Cleanup
     stack_destroy(s);
