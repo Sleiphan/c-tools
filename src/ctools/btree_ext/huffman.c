@@ -59,7 +59,7 @@ int huffman_tree_nodes_comp(const void* lhs_p, const void* rhs_p) {
     return 0;
 }
 
-int cleanup_huffman_tree_callback(btree_node* node) {
+int cleanup_huffman_tree_callback(btree_node* node, void* _) {
     if (is_leaf_node(node))
         return 0;
     
@@ -137,7 +137,7 @@ huffman_tree* huffman_tree_create(const uint64_t byte_counts_original[SYMBOL_CAN
 
     // Cleanup.
     stack_destroy(node_stack);
-    btree_depth_first_search(tree->top, cleanup_huffman_tree_callback); // TODO: change to using BFS.
+    btree_breadth_first_search(tree->top, NULL, cleanup_huffman_tree_callback);
 
     return tree;
 }
@@ -152,7 +152,7 @@ void huffman_tree_destroy_internal(btree_node* node) {
     if (node->value)
         free(node->value);
 
-    free(node);
+    btree_node_destroy(node);
 }
 
 void huffman_tree_destroy(huffman_tree* tree) {
