@@ -1,9 +1,10 @@
 {
 	"name": "Alpine cpp dev",
+	"postCreateCommand": "chmod +x ./.devcontainer/post-install.sh && ./.devcontainer/post-install.sh",
+    "shutdownAction": "stopContainer",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
-	"postCreateCommand": "chmod +x ./.devcontainer/post-install.sh && ./.devcontainer/post-install.sh",
 	"customizations": {
 		"vscode": {
 			"extensions": [
