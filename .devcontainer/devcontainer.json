@@ -1,10 +1,15 @@
 {
+	// --security-opt seccomp=unconfined
 	"name": "Alpine cpp dev",
 	"postCreateCommand": "chmod +x ./.devcontainer/post-install.sh && ./.devcontainer/post-install.sh",
     "shutdownAction": "stopContainer",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
+	"runArgs": [
+		// Only for allowing io_uring syscalls. Should use custom seccomp filter in production.
+    	"--security-opt", "seccomp=unconfined"
+  	],
 	"customizations": {
 		"vscode": {
 			"extensions": [
