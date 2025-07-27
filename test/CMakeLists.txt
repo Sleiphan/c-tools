@@ -23,3 +23,8 @@ set(TEST "T-queue")
 add_executable(${TEST} queue.cpp)
 target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
 gtest_discover_tests(${TEST})
+
+set(TEST "T-heap")
+add_executable(${TEST} heap.cpp)
+target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
+gtest_discover_tests(${TEST})
