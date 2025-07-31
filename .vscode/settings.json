@@ -72,6 +72,8 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "gheap.h": "c",
+        "gstack.h": "c"
     }
 }

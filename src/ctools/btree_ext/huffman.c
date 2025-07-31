@@ -1,8 +1,14 @@
-#include "ctools/btree_ext/huffman.h"
-#include "ctools/stack.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ctools/btree_ext/huffman.h"
+
+#define HEAP_NAME bheap
+#define HEAP_TYPE btree_node*
+#define HEAP_COMP(a,b) a->value - b->value
+#include "ctools/heap.h"
+
+
 
 // Files are processed in blocks of 1MB
 #define FILE_READING_BUFFER_SIZE 1 << 20
@@ -87,21 +93,23 @@ huffman_tree* huffman_tree_create(const uint64_t byte_counts_original[SYMBOL_CAN
     qsort(byte_counts_p, SYMBOL_CANDIDATE_COUNT, sizeof(byte_counts_p[0]), byte_count_compare_desc);
 
     // Define a helper stack for creating the Huffman tree
-    stack* node_stack = stack_create();
+    bheap* node_heap = bheap_create(SYMBOL_CANDIDATE_COUNT);
 
     // Insert all leaf nodes into the helper stack
     for (int i = 0; i < SYMBOL_CANDIDATE_COUNT & *byte_counts_p[i] > 0; i++) {
         btree_node* node = btree_node_create();
         node->value = byte_counts_p[i];
 
-        stack_push(node_stack, node);
+        bheap_push(node_heap, node);
     }
 
     // Create the Huffman tree
-    while (stack_size(node_stack) > 1) {
+    while (bheap_size(node_heap) > 1) {
         // Pop two nodes from the stack
-        btree_node* node_1 = stack_pop(node_stack);
-        btree_node* node_2 = stack_pop(node_stack);
+        btree_node* node_1;
+        btree_node* node_2;
+        bheap_pop(node_heap, &node_1);
+        bheap_pop(node_heap, &node_2);
 
         uint64_t node_1_count = *((uint64_t*)node_1->value);
         uint64_t node_2_count = *((uint64_t*)node_2->value);
@@ -125,18 +133,20 @@ huffman_tree* huffman_tree_create(const uint64_t byte_counts_original[SYMBOL_CAN
         btree_node* new_mid_node = btree_node_create();
         new_mid_node->hi = hi;
         new_mid_node->lo = lo;
-        new_mid_node->value = (uint64_t*) malloc(sizeof(uint64_t)); // Only temporary heap allocation. Will be deallocated at the end of this function.
+        new_mid_node->value = (uint64_t*) malloc(sizeof(uint64_t)); // Only temporary bheap allocation. Will be deallocated at the end of this function.
         *((uint64_t*)new_mid_node->value) = node_1_count + node_2_count;
 
         // Sort the new node into the stack
-        stack_push_sort(node_stack, new_mid_node, huffman_tree_nodes_comp);
+        bheap_push(node_heap, new_mid_node);
     }
 
     // The last node in the stack is the top node of the Huffman tree.
-    tree->top = stack_pop(node_stack);
+    bheap_pop(node_heap, &tree->top);
+    bheap_destroy(node_heap);
+
+
 
     // Cleanup.
-    stack_destroy(node_stack);
     btree_breadth_first_search(tree->top, NULL, cleanup_huffman_tree_callback);
 
     return tree;

@@ -1,3 +1,6 @@
+#define STACK_NAME stack
+#define STACK_TYPE int
+
 #include "ctools/btree.h"
 #include "ctools/stack.h"
 #include "ctools/queue.h"
