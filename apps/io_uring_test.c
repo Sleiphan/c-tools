@@ -20,7 +20,7 @@ int test_file_read(const char* file_path) {
     if (uring_init_status < 0) {
         perror("io_uring_queue_init");
         return_code = -1;
-        goto exit_uring;
+        goto end;
     }
     printf("Successfully created an io_uring\n");
 
@@ -85,6 +85,7 @@ int test_file_read(const char* file_path) {
     exit_uring:
     io_uring_queue_exit(&ring);
 
+    end:
     return return_code;
 }
 
