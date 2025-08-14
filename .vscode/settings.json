@@ -74,6 +74,7 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "gheap.h": "c",
-        "gstack.h": "c"
+        "gstack.h": "c",
+        "unistd.h": "c"
     }
 }
