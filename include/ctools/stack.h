@@ -36,9 +36,14 @@
 
 
 typedef struct STACK_NAME {
-    STACK_TYPE* array;
     STACK_INDEX size;
+
+    #ifdef STACK_CAPACITY
+    STACK_TYPE array[STACK_CAPACITY];
+    #else
     STACK_INDEX capacity;
+    STACK_TYPE* array;
+    #endif
 
     #ifdef STACK_EXT_THREAD_SAFE
     pthread_mutex_t lock;
@@ -46,7 +51,11 @@ typedef struct STACK_NAME {
     #endif
 } STACK_NAME;
 
-static inline STACK_NAME* __EXPAND_CONCAT(STACK_NAME,_create)(const STACK_INDEX initial_capacity) {
+static inline STACK_NAME* __EXPAND_CONCAT(STACK_NAME,_create)(
+    #ifndef STACK_CAPACITY
+    const STACK_INDEX initial_capacity
+    #endif
+) {
     STACK_NAME* s = (STACK_NAME*) malloc(sizeof(STACK_NAME));
     if (!s)
         return NULL;
@@ -58,6 +67,7 @@ static inline STACK_NAME* __EXPAND_CONCAT(STACK_NAME,_create)(const STACK_INDEX 
     }
     #endif
 
+    #ifndef STACK_CAPACITY
     // Choose the largest of `initial_capacity` and `STACK_MIN_CAPACITY` as the starting capacity.
     const STACK_INDEX starting_capacity = initial_capacity > STACK_MIN_CAPACITY ? initial_capacity : STACK_MIN_CAPACITY;
 
@@ -71,8 +81,10 @@ static inline STACK_NAME* __EXPAND_CONCAT(STACK_NAME,_create)(const STACK_INDEX 
     }
 
     s->capacity = starting_capacity;
+    #endif
+
     s->size = 0;
-    
+
     #ifdef STACK_EXT_THREAD_SAFE
     s->shutting_down = false;
     #endif
@@ -101,7 +113,9 @@ static inline void __EXPAND_CONCAT(STACK_NAME,_destroy)(STACK_NAME* s) {
     #endif
     
     // Destroy all nodes in the stack
+    #ifndef STACK_CAPACITY
     free(s->array);
+    #endif
 
     #ifdef STACK_EXT_THREAD_SAFE
 
@@ -147,6 +161,8 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE va
 
     #endif
 
+    #ifndef STACK_CAPACITY
+
     // Increase capacity if the stack is full
     if (s->size == s->capacity) {
         STACK_TYPE* new_array = (STACK_TYPE*) realloc(s->array, 2 * s->capacity * sizeof(STACK_TYPE));
@@ -163,6 +179,8 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE va
         s->array = new_array;
         s->capacity *= 2;
     }
+
+    #endif
 
     // Assign the value to the top of the stack,
     // then increase the size counter
@@ -203,6 +221,8 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_pop) (STACK_NAME* s, STACK_TYPE* d
     // then assign the removed value to the destination pointer
     *dst = s->array[--s->size];
 
+    #ifndef STACK_CAPACITY
+
     // Decrease capacity if the stack size is a quarter of the capacity
     if ((s->size <= s->capacity / 4) && (s->capacity / 2 >= STACK_MIN_CAPACITY)) {
         STACK_TYPE* new_array = (STACK_TYPE*) realloc(s->array, (s->capacity / 2) * sizeof(STACK_TYPE));
@@ -219,6 +239,8 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_pop) (STACK_NAME* s, STACK_TYPE* d
         s->array = new_array;
         s->capacity /= 2;
     }
+
+    #endif
 
     
     // Unlock
