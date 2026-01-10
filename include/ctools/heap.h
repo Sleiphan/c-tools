@@ -26,6 +26,7 @@
 
 #define STACK_NAME __EXPAND_CONCAT(HEAP_NAME,_stack)
 #define STACK_TYPE HEAP_INDEX
+#define STACK_EXT_THREAD_SAFE
 
 #include <stdlib.h>
 #include "ctools/stack.h"

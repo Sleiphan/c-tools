@@ -1,5 +1,6 @@
 #define STACK_NAME stack
 #define STACK_TYPE int
+#define STACK_EXT_THREAD_SAFE
 
 #include "ctools/btree.h"
 #include "ctools/stack.h"

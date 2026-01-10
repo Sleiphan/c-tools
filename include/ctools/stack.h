@@ -14,8 +14,12 @@
 
 
 #include <stdlib.h>
-#include <pthread.h>
 #include <stdbool.h>
+
+#ifdef STACK_EXT_THREAD_SAFE
+#include <pthread.h>
+#endif
+
 #include "ctools/define_concat.h"
 
 
@@ -36,8 +40,10 @@ typedef struct STACK_NAME {
     STACK_INDEX size;
     STACK_INDEX capacity;
 
+    #ifdef STACK_EXT_THREAD_SAFE
     pthread_mutex_t lock;
     bool shutting_down;
+    #endif
 } STACK_NAME;
 
 static inline STACK_NAME* __EXPAND_CONCAT(STACK_NAME,_create)(const STACK_INDEX initial_capacity) {
@@ -45,29 +51,38 @@ static inline STACK_NAME* __EXPAND_CONCAT(STACK_NAME,_create)(const STACK_INDEX 
     if (!s)
         return NULL;
 
+    #ifdef STACK_EXT_THREAD_SAFE
     if (pthread_mutex_init(&s->lock, NULL)) {
         free(s);
         return NULL;
     }
+    #endif
 
     // Choose the largest of `initial_capacity` and `STACK_MIN_CAPACITY` as the starting capacity.
     const STACK_INDEX starting_capacity = initial_capacity > STACK_MIN_CAPACITY ? initial_capacity : STACK_MIN_CAPACITY;
 
     s->array = (STACK_TYPE*) malloc(starting_capacity * sizeof(STACK_TYPE));
     if (!s->array) {
+        #ifdef STACK_EXT_THREAD_SAFE
         pthread_mutex_destroy(&s->lock);
+        #endif
         free(s);
         return NULL;
     }
 
     s->capacity = starting_capacity;
     s->size = 0;
+    
+    #ifdef STACK_EXT_THREAD_SAFE
     s->shutting_down = false;
+    #endif
 
     return s;
 }
 
 static inline void __EXPAND_CONCAT(STACK_NAME,_shutdown)(STACK_NAME* s) {
+    #ifdef STACK_EXT_THREAD_SAFE
+
     // Lock
     pthread_mutex_lock(&s->lock);
 
@@ -75,14 +90,20 @@ static inline void __EXPAND_CONCAT(STACK_NAME,_shutdown)(STACK_NAME* s) {
 
     // Unlock
     pthread_mutex_unlock(&s->lock);
+
+    #endif
 }
 
 static inline void __EXPAND_CONCAT(STACK_NAME,_destroy)(STACK_NAME* s) {
     // Aquire lock
+    #ifdef STACK_EXT_THREAD_SAFE
     pthread_mutex_lock(&s->lock);
+    #endif
     
     // Destroy all nodes in the stack
     free(s->array);
+
+    #ifdef STACK_EXT_THREAD_SAFE
 
     // Unlock
     pthread_mutex_unlock(&s->lock);
@@ -90,11 +111,15 @@ static inline void __EXPAND_CONCAT(STACK_NAME,_destroy)(STACK_NAME* s) {
     // Destroy the lock
     pthread_mutex_destroy(&s->lock);
 
+    #endif
+
     // De-allocate the stack struct
     free(s);
 }
 
 static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)(STACK_NAME* s) {
+    #ifdef STACK_EXT_THREAD_SAFE
+
     pthread_mutex_lock(&s->lock);
 
     STACK_INDEX size = s->size;
@@ -102,9 +127,15 @@ static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)(STACK_NAME* s) {
     pthread_mutex_unlock(&s->lock);
 
     return size;
+    
+    #else
+    return s->size;
+    #endif
 }
 
 static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE value) {
+    #ifdef STACK_EXT_THREAD_SAFE
+
     // Lock
     pthread_mutex_lock(&s->lock);
 
@@ -114,13 +145,17 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE va
         return -2;
     }
 
+    #endif
+
     // Increase capacity if the stack is full
     if (s->size == s->capacity) {
         STACK_TYPE* new_array = (STACK_TYPE*) realloc(s->array, 2 * s->capacity * sizeof(STACK_TYPE));
         
         // If we failed to allocate more memory, return an error
         if (!new_array) {
+            #ifdef STACK_EXT_THREAD_SAFE
             pthread_mutex_unlock(&s->lock);
+            #endif
             return -3;
         }
         
@@ -134,12 +169,16 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE va
     s->array[s->size++] = value;
 
     // Unlock
+    #ifdef STACK_EXT_THREAD_SAFE
     pthread_mutex_unlock(&s->lock);
+    #endif
 
     return 0;
 }
 
 static inline int __EXPAND_CONCAT(STACK_NAME,_pop) (STACK_NAME* s, STACK_TYPE* dst) {
+    #ifdef STACK_EXT_THREAD_SAFE
+
     // Lock
     pthread_mutex_lock(&s->lock);
 
@@ -149,9 +188,14 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_pop) (STACK_NAME* s, STACK_TYPE* d
         return -2;
     }
 
+    #endif
+
     // Return error code if the stack is empty
     if (s->size == 0) {
+        #ifdef STACK_EXT_THREAD_SAFE
         pthread_mutex_unlock(&s->lock);
+        #endif
+
         return -1;
     }
 
@@ -165,7 +209,10 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_pop) (STACK_NAME* s, STACK_TYPE* d
         
         // If we failed to allocate more memory, return an error
         if (!new_array) {
+            #ifdef STACK_EXT_THREAD_SAFE
             pthread_mutex_unlock(&s->lock);
+            #endif
+
             return -3;
         }
         
@@ -173,8 +220,11 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_pop) (STACK_NAME* s, STACK_TYPE* d
         s->capacity /= 2;
     }
 
+    
     // Unlock
+    #ifdef STACK_EXT_THREAD_SAFE
     pthread_mutex_unlock(&s->lock);
+    #endif
 
     // Return success
     return 0;
