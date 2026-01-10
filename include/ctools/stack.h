@@ -51,19 +51,19 @@ typedef struct STACK_NAME {
     #endif
 } STACK_NAME;
 
-static inline STACK_NAME* __EXPAND_CONCAT(STACK_NAME,_create)(
-    #ifndef STACK_CAPACITY
+static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
+    #ifdef STACK_CAPACITY
+    STACK_NAME* s
+
+    #else
+    STACK_NAME* s,
     const STACK_INDEX initial_capacity
+
     #endif
 ) {
-    STACK_NAME* s = (STACK_NAME*) malloc(sizeof(STACK_NAME));
-    if (!s)
-        return NULL;
-
     #ifdef STACK_EXT_THREAD_SAFE
     if (pthread_mutex_init(&s->lock, NULL)) {
-        free(s);
-        return NULL;
+        return -1;
     }
     #endif
 
@@ -76,8 +76,7 @@ static inline STACK_NAME* __EXPAND_CONCAT(STACK_NAME,_create)(
         #ifdef STACK_EXT_THREAD_SAFE
         pthread_mutex_destroy(&s->lock);
         #endif
-        free(s);
-        return NULL;
+        return -1;
     }
 
     s->capacity = starting_capacity;
@@ -89,7 +88,7 @@ static inline STACK_NAME* __EXPAND_CONCAT(STACK_NAME,_create)(
     s->shutting_down = false;
     #endif
 
-    return s;
+    return 0;
 }
 
 static inline void __EXPAND_CONCAT(STACK_NAME,_shutdown)(STACK_NAME* s) {
@@ -126,9 +125,6 @@ static inline void __EXPAND_CONCAT(STACK_NAME,_destroy)(STACK_NAME* s) {
     pthread_mutex_destroy(&s->lock);
 
     #endif
-
-    // De-allocate the stack struct
-    free(s);
 }
 
 static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)(STACK_NAME* s) {

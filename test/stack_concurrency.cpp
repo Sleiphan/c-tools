@@ -11,7 +11,8 @@ extern "C" {
 }
 
 void speed_difference_test(const int producer_delay_ms, const int consumer_delay_ms) {
-    stack* s = stack_create(0);
+    stack s;
+    stack_create(&s, 0);
 
     const int NUMBER_COUNT = 300;
     int producer_numbers[NUMBER_COUNT];
@@ -22,14 +23,14 @@ void speed_difference_test(const int producer_delay_ms, const int consumer_delay
     
     std::thread producer([&s, &producer_numbers, &producer_delay_ms](){
         for (int i = 0; i < NUMBER_COUNT; i++) {
-            stack_push(s, producer_numbers[i]);
+            stack_push(&s, producer_numbers[i]);
             std::this_thread::sleep_for(std::chrono::milliseconds(producer_delay_ms));
         }
     });
 
     std::thread consumer([&s, &consumed_numbers, &consumer_delay_ms](){
         for (int i = 0; i < NUMBER_COUNT; i++) {
-            while (stack_pop(s, &consumed_numbers[i]) != 0)
+            while (stack_pop(&s, &consumed_numbers[i]) != 0)
                 std::this_thread::sleep_for(std::chrono::milliseconds(consumer_delay_ms));
         }
     });
@@ -43,7 +44,7 @@ void speed_difference_test(const int producer_delay_ms, const int consumer_delay
         EXPECT_EQ(consumed_numbers[i], i);
     
     // Cleanup
-    stack_destroy(s);
+    stack_destroy(&s);
 }
 
 TEST(stack_concurrency, faster_producer) {

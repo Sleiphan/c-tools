@@ -197,16 +197,17 @@ static inline void __EXPAND_CONCAT(HEAP_NAME,_build)(HEAP_TYPE* heap_array, cons
     const HEAP_INDEX first_parent = heap_array_size / 2 - 1;
 
     // Use a FILO processing queue
-    STACK_NAME* nodes = __EXPAND_CONCAT(HEAP_NAME,_stack_create)(8);
+    STACK_NAME nodes;
+    __EXPAND_CONCAT(HEAP_NAME,_stack_create)(&nodes, 8);
     
     // Queue all parent nodes for processing in the correct order
     for (HEAP_INDEX i = 0; i <= first_parent; i++)
-        __EXPAND_CONCAT(STACK_NAME,_push)(nodes, i);
+        __EXPAND_CONCAT(STACK_NAME,_push)(&nodes, i);
 
     // While there are nodes left to process
-    while (__EXPAND_CONCAT(STACK_NAME,_size)(nodes)) {
+    while (__EXPAND_CONCAT(STACK_NAME,_size)(&nodes)) {
         HEAP_INDEX parent;
-        __EXPAND_CONCAT(STACK_NAME,_pop)(nodes, &parent);
+        __EXPAND_CONCAT(STACK_NAME,_pop)(&nodes, &parent);
 
         // Find the index of both child nodes
         const HEAP_INDEX left_child = (parent + 1) * 2 - 1;
@@ -227,8 +228,8 @@ static inline void __EXPAND_CONCAT(HEAP_NAME,_build)(HEAP_TYPE* heap_array, cons
             HEAP_SWAP(heap_array[largest_child], heap_array[parent]);
             
             // Queue the node's children for processing
-            __EXPAND_CONCAT(STACK_NAME,_push)(nodes, left_child);
-            __EXPAND_CONCAT(STACK_NAME,_push)(nodes, right_child);
+            __EXPAND_CONCAT(STACK_NAME,_push)(&nodes, left_child);
+            __EXPAND_CONCAT(STACK_NAME,_push)(&nodes, right_child);
         }
     }
 }
