@@ -1,31 +1,6 @@
 {
     "version": "0.2.0",
-    "configurations": [ 
-        {
-            "name": "[windows] Run current file",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "preLaunchTask": "CMake: Debug: build",
-            "program": "${workspaceFolder}/bin/${fileBasenameNoExtension}.exe",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "[windows] Debug test",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "preLaunchTask": "CMake: Debug: build",
-            // Resolved by CMake Tools:
-            "program": "${cmake.testProgram}",
-            "args": [ "${cmake.testArgs}"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "console": "integratedTerminal"
-        },
+    "configurations": [
         {
             "name": "[unix] Run current file",
             "type": "cppdbg",
