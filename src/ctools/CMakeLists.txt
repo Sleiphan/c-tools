@@ -5,3 +5,4 @@ target_sources(${CTOOLS_LIB} PUBLIC
 )
 
 add_subdirectory(btree_ext)
+add_subdirectory(trie)

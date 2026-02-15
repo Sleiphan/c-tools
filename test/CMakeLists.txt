@@ -1,3 +1,4 @@
+add_subdirectory(trie)
 
 set(TEST "T-stack")
 add_executable(${TEST} stack.cpp)
