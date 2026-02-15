@@ -27,6 +27,15 @@ void serialize_node(const struct trie_node* src, struct rtree_node* out, uint16_
     out[my_index].tree_size = after_children - before_children;
 }
 
+/**
+ * Finds the amount of rtree_nodes that would be produced when building an
+ * rtree from a given trie.
+ * 
+ * This is useful for allocating contiguous memory for an rtree before conversion.
+ * 
+ * @param top_node The top node of the trie that would be converted into an rtree.
+ * @returns The number of rtree nodes the conversion would produce.
+ */
 unsigned int rtree_find_required_size(const struct trie_node* top_node) {
     // The number of would-be nodes in an rtree produced from the top node.
     // Initialized to 1 because we are counting the top node as well.
@@ -47,18 +56,38 @@ unsigned int rtree_find_required_size(const struct trie_node* top_node) {
     return num_nodes;
 }
 
-void rtree_create(struct rtree_node* out, const struct trie_node* top_node) {
-    // unsigned int required_size = find_required_rtree_size(top_node);
-
-    // struct rtree_node* out = malloc(required_size * sizeof(struct rtree_node));
+struct rtree_node* rtree_create_from_trie(const struct trie_node* top_node) {
+    unsigned int required_size = rtree_find_required_size(top_node);
+    struct rtree_node* radix_tree = malloc(required_size * sizeof(struct rtree_node));
 
     uint16_t next_index = 0;
-    serialize_node(top_node, out, &next_index);
+    serialize_node(top_node, radix_tree, &next_index);
+
+    return radix_tree;
 }
 
-// void rtree_destroy(struct rtree_node* top_node) {
-//     free(top_node);
-// }
+struct rtree_node* rtree_create(const struct rtree_setup_entry* entries, const uint16_t entry_count) {
+    struct trie_node* trie = trie_create();
+
+    // Copy the values to a temporary store to prevent modification.
+    uint16_t* temp_value_store = (uint16_t*) malloc(entry_count * sizeof(uint16_t));
+    for (int i = 0; i < entry_count; i++)
+        temp_value_store[i] = entries[i].value;
+
+    for (int i = 0; i < entry_count; i++)
+        trie_add(trie, entries[i].str, temp_value_store + i);
+
+    struct rtree_node* radix_tree = rtree_create_from_trie(trie);
+
+    free(temp_value_store);
+    trie_destroy(trie);
+
+    return radix_tree;
+}
+
+void rtree_destroy(struct rtree_node* top_node) {
+    free(top_node);
+}
 
 uint16_t rtree_search(const struct rtree_node* nodes, const char* query_string, const unsigned int query_string_length) {
     // An iterator to seek through the query_string

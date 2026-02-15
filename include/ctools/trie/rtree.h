@@ -36,27 +36,24 @@ struct rtree_node {
     uint8_t _padding[1];
 };
 
+struct rtree_setup_entry {
+    const char* str;
+    uint16_t value;
+};
+
 /**
  * Creates a radix tree from a string trie.
  * 
- * Unfortunately, this is currently the only way to create a radix tree.
- * 
- * @param dst The array to write the nodes to. See `rtree_find_required_size()` to allocate this array correctly.
- * @param src_top_node The top node of the trie that the radix tree should be converted from.
+ * @param top_node The top node of the trie that the radix tree should be converted from.
  */
-void rtree_create(struct rtree_node* dst, const struct trie_node* src_top_node);
+struct rtree_node* rtree_create_from_trie(const struct trie_node* top_node);
+
+struct rtree_node* rtree_create(const struct rtree_setup_entry* entries, const uint16_t entry_count);
+
+void rtree_destroy(struct rtree_node* top_node);
 
 uint16_t rtree_search(const struct rtree_node* router_trie, const char* query_string, const unsigned int query_string_length);
 
-/**
- * Finds the amount of rtree_nodes that would be produced when building an
- * rtree from a given trie.
- * 
- * This is useful for allocating contiguous memory for an rtree before conversion.
- * 
- * @param top_node The top node of the trie that would be converted into an rtree.
- * @returns The number of rtree nodes the conversion would produce.
- */
-unsigned int rtree_find_required_size(const struct trie_node* top_node);
+
 
 #endif // RADIX_TREE_DEFERRED_MEMCMP
