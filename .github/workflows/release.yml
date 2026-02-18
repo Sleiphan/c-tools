@@ -57,6 +57,24 @@ jobs:
         with:
           path: artifacts
 
+      - name: Prepare pool and dists
+        run: |
+          # clean old pool for this tag
+          rm -rf pool main dists
+          mkdir -p pool/main/c/ctools
+          mkdir -p dists/stable/main/binary-amd64
+
+          # copy all artifacts into pool
+          find artifacts -name "*.deb" -exec cp {} pool/main/c/ctools/ \;
+
+      - name: Generate Packages and Release
+        run: |
+          cd dists/stable/main/binary-amd64
+          dpkg-scanpackages ../../../../pool /dev/null > Packages
+          gzip -kf Packages
+          # generate minimal Release file for apt
+          apt-ftparchive release . > Release
+
       - name: Generate distro-specific repos
         run: |
           rm -rf pool dists
