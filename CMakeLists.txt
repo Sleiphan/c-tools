@@ -16,8 +16,8 @@ set(CMAKE_PDB_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/pdb)
 
 include(GNUInstallDirs)
 
+
 add_subdirectory(src)
-add_subdirectory(apps)
 
 
 option(BUILD_TESTS "Build tests" ON)
