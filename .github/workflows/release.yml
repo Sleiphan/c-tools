@@ -57,23 +57,25 @@ jobs:
         with:
           path: artifacts
 
-      - name: Prepare pool and dists
+      - name: Generate distro-specific repos
         run: |
-          # clean old pool for this tag
-          rm -rf pool main dists
-          mkdir -p pool/main/m/mylib
-          mkdir -p dists/stable/main/binary-amd64
+          rm -rf pool dists
+          mkdir -p pool/main/c/ctools
 
-          # copy all artifacts into pool
-          find artifacts -name "*.deb" -exec cp {} pool/main/m/mylib/ \;
+          for distro in jammy noble; do
+            mkdir -p dists/$distro/main/binary-amd64
 
-      - name: Generate Packages and Release
-        run: |
-          cd dists/stable/main/binary-amd64
-          dpkg-scanpackages ../../../../pool /dev/null > Packages
-          gzip -kf Packages
-          # generate minimal Release file for apt
-          apt-ftparchive release . > Release
+            # Copy only that distro's packages
+            cp artifacts/${distro}-*/**/*.deb pool/main/c/ctools/ 2>/dev/null || true
+
+            dpkg-scanpackages pool /dev/null \
+              > dists/$distro/main/binary-amd64/Packages
+
+            gzip -kf dists/$distro/main/binary-amd64/Packages
+
+            apt-ftparchive release dists/$distro \
+              > dists/$distro/Release
+          done
 
       - name: Commit & push
         run: |
