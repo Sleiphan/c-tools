@@ -1,0 +1,81 @@
+name: Build and publish APT repo
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        distro: [jammy, noble]
+
+    container:
+      image: ubuntu:${{ matrix.distro }}
+
+    steps:
+      - name: Install build deps
+        run: |
+          apt update
+          apt install -y build-essential cmake fakeroot dpkg-dev
+
+      - uses: actions/checkout@v4
+
+      - name: Package the library
+        run: |
+          chmod +x ./scripts/package_ctools.sh
+          ./scripts/package_ctools.sh
+      
+      - name: "DEBUG: List files"
+        run: |
+          ls -l *.deb
+
+      - name: Upload artifact
+        # Include distro + tag in artifact name to avoid collisions
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.distro }}-${{ github.ref_name }}
+          path: "*.deb"
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare pool and dists
+        run: |
+          # clean old pool for this tag
+          rm -rf pool main dists
+          mkdir -p pool/main/m/mylib
+          mkdir -p dists/stable/main/binary-amd64
+
+          # copy all artifacts into pool
+          find artifacts -name "*.deb" -exec cp {} pool/main/m/mylib/ \;
+
+      - name: Generate Packages and Release
+        run: |
+          cd dists/stable/main/binary-amd64
+          dpkg-scanpackages ../../../pool /dev/null > Packages
+          gzip -kf Packages
+          # generate minimal Release file for apt
+          apt-ftparchive release . > Release
+
+      - name: Commit & push
+        run: |
+          git config user.name github-actions
+          git config user.email actions@github.com
+          git add .
+          git commit -m "Update repo for $GITHUB_REF_NAME" || true
+          git push -f --quiet
