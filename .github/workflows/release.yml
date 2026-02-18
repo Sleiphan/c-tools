@@ -67,7 +67,7 @@ jobs:
       - name: Generate Packages and Release
         run: |
           cd dists/stable/main/binary-amd64
-          dpkg-scanpackages ../../../pool /dev/null > Packages
+          dpkg-scanpackages ../../../../pool /dev/null > Packages
           gzip -kf Packages
           # generate minimal Release file for apt
           apt-ftparchive release . > Release
