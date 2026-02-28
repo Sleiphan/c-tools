@@ -1,0 +1,35 @@
+name: Build and publish package as release
+
+on:
+  push:
+    tags:
+      - 'v*' # Only publish when a pushed tag starts with v
+
+jobs:
+  build:
+    runs-on: debian:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@4
+
+      - name: Install build dependencies
+        run: |
+          apt update
+          apt install -y build-essential cmake
+
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
+          cmake --build build
+      
+      - name: Create Debian package
+        run: |
+          cpack --config build/CPackConfig.cmake -G DEB
+      
+      - name: Upload package as release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ../*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
