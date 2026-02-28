@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*' # Only publish when a pushed tag starts with v
+  workflow_dispatch:
 
 jobs:
   build:
