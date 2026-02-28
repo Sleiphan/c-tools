@@ -23,11 +23,16 @@ jobs:
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
           cmake --build build
-      
+
       - name: Create Debian package
         run: |
           cpack --config build/CPackConfig.cmake -G DEB
-      
+
+      - name: Simplify package file names
+        run: |
+          mv ./*dev.deb ./ctools-dev.deb
+          mv ./*runtime.deb ./ctools-runtime.deb
+
       - name: Upload package as release
         uses: softprops/action-gh-release@v2
         with:
