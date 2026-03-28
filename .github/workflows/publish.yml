@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: debian:latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -16,8 +16,8 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          apt update
-          apt install -y build-essential cmake
+          sudo apt update
+          sudo apt install -y build-essential cmake
 
       - name: Build
         run: |
