@@ -1,6 +1,5 @@
 target_sources(${CTOOLS_LIB} PUBLIC 
     btree.c
-    queue.c
     cbuf.c
 )
 

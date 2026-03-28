@@ -4,11 +4,16 @@
 
 #include "ctools/btree.h"
 #include "ctools/stack.h"
-#include "ctools/queue.h"
 #include <stddef.h> // For the definition of NULL
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#define QUEUE_NAME queue
+#define QUEUE_TYPE btree_node*
+#define QUEUE_INDEX unsigned int
+#include "ctools/queue2.h"
+
 
 btree_node* btree_node_create() {
     btree_node* node = malloc(sizeof(btree_node));
@@ -68,7 +73,7 @@ int btree_depth_first_search(btree_node* node, void* optional, int (*callback)(b
 }
 
 int btree_breadth_first_search(btree_node* top, void* optional, int (*callback)(btree_node* node, void* optional)) {
-    queue* nodes = queue_create();
+    queue* nodes = queue_create(0);
 
     // Enqueue the top node
     queue_push(nodes, top);
@@ -78,9 +83,10 @@ int btree_breadth_first_search(btree_node* top, void* optional, int (*callback)(
 
     // While there are nodes left in the queue,
     // and the return code indicates that the search should continue...
-    while (!queue_empty(nodes) & !return_code) {
+    while (!queue_is_empty(nodes) & !return_code) {
         // Pop one node
-        btree_node* node = (btree_node*) queue_pop(nodes);
+        btree_node* node;
+        queue_pop(nodes, &node);
 
         // Enqueue child nodes
         if (node->lo) queue_push(nodes, node->lo);
