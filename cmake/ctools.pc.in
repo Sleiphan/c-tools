@@ -3,8 +3,8 @@ exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
-Name: @PROJECT_NAME@
+Name: @CTOOLS_LIB@
 Description: @PROJECT_DESCRIPTION@
 Version: @PROJECT_VERSION@
-Libs: -l@PROJECT_NAME@
+Libs: -l@CTOOLS_LIB@
 Cflags: -I${includedir}

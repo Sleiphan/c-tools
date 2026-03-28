@@ -1,28 +1,27 @@
-set(CTOOLS_LIB ${PROJECT_NAME})
 add_library(${CTOOLS_LIB} SHARED)
 target_include_directories(${CTOOLS_LIB} PUBLIC ${CMAKE_SOURCE_DIR}/include)
-set_target_properties(${PROJECT_NAME} PROPERTIES 
+set_target_properties(${CTOOLS_LIB} PROPERTIES 
     LINKER_LANGUAGE C
     ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/bin
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-add_subdirectory(${PROJECT_NAME})
+add_subdirectory(${CTOOLS_LIB})
 
 configure_file(
-    ${CMAKE_SOURCE_DIR}/cmake/${PROJECT_NAME}.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc
+    ${CMAKE_SOURCE_DIR}/cmake/${CTOOLS_LIB}.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${CTOOLS_LIB}.pc
     @ONLY
 )
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${CTOOLS_LIB}.pc
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
     COMPONENT dev
 )
 
 # Install shared library (runtime package)
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${CTOOLS_LIB}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT runtime
 )
