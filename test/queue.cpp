@@ -102,6 +102,30 @@ TEST(queue, base_case) {
 
 
 
+TEST(queue, emptying_and_reusing) {
+    const int test_value_1 = 42;
+    const int test_value_2 = 420;
+    int pop_1;
+    int pop_2;
+
+    queue* q = queue_create(20);
+
+    for (int i = 0; i < 10; i++) {
+        queue_push(q, test_value_1);
+        queue_push(q, test_value_2);
+
+        queue_pop(q, &pop_1);
+        queue_pop(q, &pop_2);
+
+        EXPECT_EQ(pop_1, test_value_1);
+        EXPECT_EQ(pop_2, test_value_2);
+    }
+    
+    queue_destroy(q);
+}
+
+
+
 TEST(queue, size_reports_correctly) {
     constexpr QUEUE_INDEX capacity = queue_max_size - 1;
     constexpr QUEUE_INDEX half_capacity = capacity / 2;
