@@ -7,7 +7,7 @@
 // This #include section is only to verify that the header
 // supports multiple inclusions in a compilation unit
 extern "C" {
-    #include "ctools/queue2.h"
+    #include "ctools/queue.h"
 }
 
 #undef QUEUE_NAME
@@ -15,7 +15,7 @@ extern "C" {
 #define QUEUE_NAME queue
 #define QUEUE_INDEX unsigned char
 extern "C" {
-    #include "ctools/queue2.h"
+    #include "ctools/queue.h"
     #include <errno.h>
 }
 
@@ -173,7 +173,7 @@ TEST(queue, size_reports_correctly) {
 }
 
 TEST(queue, base_case_array) {
-    constexpr QUEUE_INDEX capacity = (queue_max_size) - 1;
+    constexpr QUEUE_INDEX capacity = queue_max_size - 1;
     constexpr QUEUE_INDEX half_capacity = capacity / 2;
 
     queue* q = queue_create(capacity);

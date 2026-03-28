@@ -11,18 +11,10 @@
 #define QUEUE_INDEX unsigned int
 #endif
 
-// #ifndef QUEUE_ENOMEM
-// #define QUEUE_ENOMEM 1
-// #endif
-
-// #ifndef QUEUE_EEMPTY
-// #define QUEUE_EEMPTY 2
-// #endif
+#include <stdbool.h>
+#include <string.h>
 
 #include "ctools/define_concat.h"
-#include <limits.h>
-#include <stdbool.h>
-#include <math.h>
 
 typedef struct QUEUE_NAME {
     QUEUE_TYPE* array;
@@ -32,11 +24,9 @@ typedef struct QUEUE_NAME {
     QUEUE_INDEX back;
 } QUEUE_NAME;
 
-constexpr QUEUE_INDEX __EXPAND_CONCAT(QUEUE_NAME,_max_size) = ((QUEUE_INDEX)1 << (sizeof(QUEUE_INDEX) * 8 - 1 - !(((QUEUE_INDEX)-1) > 0)));
+static const QUEUE_INDEX __EXPAND_CONCAT(QUEUE_NAME,_max_size) = (QUEUE_INDEX)1 << (sizeof(QUEUE_INDEX) * 8 - 1 - !(((QUEUE_INDEX)-1) > 0));
 
-
-
-static inline QUEUE_NAME* __EXPAND_CONCAT(QUEUE_NAME,_create)(QUEUE_INDEX minimum_capacity) {
+static QUEUE_NAME* __EXPAND_CONCAT(QUEUE_NAME,_create)(QUEUE_INDEX minimum_capacity) {
     // Skip if the requested size is not supported, given the QUEUE_INDEX type
     if (minimum_capacity > __EXPAND_CONCAT(QUEUE_NAME,_max_size) - 1)
         return NULL;
@@ -125,7 +115,7 @@ static inline int __EXPAND_CONCAT(QUEUE_NAME,_pop)(QUEUE_NAME* q, QUEUE_TYPE* ds
 
 
 
-static inline int __EXPAND_CONCAT(QUEUE_NAME,_push_array)(QUEUE_NAME* q, const QUEUE_TYPE* values, const QUEUE_INDEX element_count) {
+static int __EXPAND_CONCAT(QUEUE_NAME,_push_array)(QUEUE_NAME* q, const QUEUE_TYPE* values, const QUEUE_INDEX element_count) {
     // Skip if queue is full
     if (q->front == ((q->back + 1) & q->capacity_mask))
         return 0;
@@ -163,7 +153,7 @@ static inline int __EXPAND_CONCAT(QUEUE_NAME,_push_array)(QUEUE_NAME* q, const Q
 
 
 
-static inline int __EXPAND_CONCAT(QUEUE_NAME,_pop_array)(QUEUE_NAME* q, QUEUE_TYPE* dst, const QUEUE_INDEX dst_size) {
+static int __EXPAND_CONCAT(QUEUE_NAME,_pop_array)(QUEUE_NAME* q, QUEUE_TYPE* dst, const QUEUE_INDEX dst_size) {
     // Skip if queue is empty
     if (q->front == q->back)
         return 0;

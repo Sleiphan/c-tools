@@ -12,7 +12,7 @@
 #define QUEUE_NAME queue
 #define QUEUE_TYPE btree_node*
 #define QUEUE_INDEX unsigned int
-#include "ctools/queue2.h"
+#include "ctools/queue.h"
 
 
 btree_node* btree_node_create() {
