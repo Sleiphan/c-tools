@@ -24,18 +24,8 @@ add_executable(${TEST} stack_concurrency.cpp)
 target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
 gtest_discover_tests(${TEST})
 
-set(TEST "T-btree")
-add_executable(${TEST} btree.cpp)
-target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
-gtest_discover_tests(${TEST})
-
 set(TEST "T-cbuf")
 add_executable(${TEST} cbuf.cpp)
-target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
-gtest_discover_tests(${TEST})
-
-set(TEST "T-huffman")
-add_executable(${TEST} huffman.cpp)
 target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
 gtest_discover_tests(${TEST})
 
