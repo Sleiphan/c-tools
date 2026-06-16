@@ -13,6 +13,7 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <errno.h>
 
 #include "ctools/define_concat.h"
 
@@ -26,46 +27,43 @@ typedef struct QUEUE_NAME {
 
 static const QUEUE_INDEX __EXPAND_CONCAT(QUEUE_NAME,_max_size) = (QUEUE_INDEX)1 << (sizeof(QUEUE_INDEX) * 8 - 1 - !(((QUEUE_INDEX)-1) > 0));
 
-static QUEUE_NAME* __EXPAND_CONCAT(QUEUE_NAME,_create)(QUEUE_INDEX minimum_capacity) {
+static int __EXPAND_CONCAT(QUEUE_NAME,_create)(QUEUE_NAME* queue_dst, QUEUE_INDEX minimum_capacity) {
     // Skip if the requested size is not supported, given the QUEUE_INDEX type
     if (minimum_capacity > __EXPAND_CONCAT(QUEUE_NAME,_max_size) - 1)
-        return NULL;
-    
+        return EINVAL;
+
     // This implementation require one empty slot to distinguish between an empty queue and a full queue.
     minimum_capacity += 1;
 
     // The actual queue object to allocate and initilize
-    QUEUE_NAME* q = (QUEUE_NAME*) malloc(sizeof(QUEUE_NAME));
-    if (!q)
-        return NULL;
+    QUEUE_NAME q;
 
 
 
     // The actual capacity that the queue will have
     QUEUE_INDEX capacity = 1;
-    
+
     // Assign the real capacity to the 2^n upper ceiling of the minimum capacity
     while (capacity < minimum_capacity)
         capacity <<= 1;
-    
+
     // Allocate the container array
-    q->array = (QUEUE_TYPE*) malloc(capacity * sizeof(QUEUE_TYPE));
-    if (!q->array) {
-        free(q);
-        return NULL;
-    }
+    q.array = (QUEUE_TYPE*) malloc(capacity * sizeof(QUEUE_TYPE));
+    if (!q.array)
+        return errno;
 
     // Initialize the rest of fields
-    q->capacity_mask = capacity - 1;
-    q->back = 0;
-    q->front = 0;
+    q.capacity_mask = capacity - 1;
+    q.back = 0;
+    q.front = 0;
 
-    return q;
+    *queue_dst = q;
+
+    return 0;
 }
 
 static inline void __EXPAND_CONCAT(QUEUE_NAME,_destroy)(QUEUE_NAME* q) {
     free(q->array);
-    free(q);
 }
 
 static inline void __EXPAND_CONCAT(QUEUE_NAME,_peek)(QUEUE_NAME* q, QUEUE_TYPE* dst) {
