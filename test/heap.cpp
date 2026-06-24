@@ -40,7 +40,7 @@ TEST(heap_verify, voilation_counts) {
 TEST(heap_build, base_case) {
     int heap_array[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-    heap_build(heap_array, 9);
+    EXPECT_EQ(heap_build(heap_array, 9), 0);
 
     EXPECT_EQ(heap_verify(heap_array, 9), 0);
 }
@@ -48,7 +48,7 @@ TEST(heap_build, base_case) {
 TEST(heap_build, even_array_size) {
     int heap_array[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-    heap_build(heap_array, 10);
+    EXPECT_EQ(heap_build(heap_array, 10), 0);
 
     EXPECT_EQ(heap_verify(heap_array, 9), 0);
 }

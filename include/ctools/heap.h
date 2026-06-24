@@ -23,14 +23,14 @@
 #endif
 
 #include "ctools/define_concat.h"
-
 #define STACK_NAME __EXPAND_CONCAT(HEAP_NAME,_stack)
 #define STACK_TYPE HEAP_INDEX
-#define STACK_EXT_THREAD_SAFE
-
-#include <stdlib.h>
 #include "ctools/stack.h"
+#include <stdlib.h>
 
+#ifdef CTOOLS_ENABLE_DEBUG_ASSERT
+#include <assert.h>
+#endif
 
 
 typedef struct HEAP_NAME {
@@ -193,16 +193,21 @@ static inline int __EXPAND_CONCAT(HEAP_NAME,_pop)(HEAP_NAME* h, HEAP_TYPE* dst) 
 
 
 
-static inline void __EXPAND_CONCAT(HEAP_NAME,_build)(HEAP_TYPE* heap_array, const HEAP_INDEX heap_array_size) {
+static inline int __EXPAND_CONCAT(HEAP_NAME,_build)(HEAP_TYPE* heap_array, const HEAP_INDEX heap_array_size) {
     const HEAP_INDEX first_parent = heap_array_size / 2 - 1;
 
     // Use a FILO processing queue
     STACK_NAME nodes;
-    __EXPAND_CONCAT(HEAP_NAME,_stack_create)(&nodes, 8);
+    if (__EXPAND_CONCAT(HEAP_NAME,_stack_create)(&nodes, heap_array_size / 2 + 1))
+        return -1;
     
     // Queue all parent nodes for processing in the correct order
     for (HEAP_INDEX i = 0; i <= first_parent; i++)
+        #ifndef CTOOLS_ENABLE_DEBUG_ASSERT
         __EXPAND_CONCAT(STACK_NAME,_push)(&nodes, i);
+        #else
+        assert(__EXPAND_CONCAT(STACK_NAME,_push)(&nodes, i) == 0);
+        #endif
 
     // While there are nodes left to process
     while (__EXPAND_CONCAT(STACK_NAME,_size)(&nodes)) {
@@ -228,10 +233,17 @@ static inline void __EXPAND_CONCAT(HEAP_NAME,_build)(HEAP_TYPE* heap_array, cons
             HEAP_SWAP(heap_array[largest_child], heap_array[parent]);
             
             // Queue the node's children for processing
+            #ifndef CTOOLS_ENABLE_DEBUG_ASSERT
             __EXPAND_CONCAT(STACK_NAME,_push)(&nodes, left_child);
             __EXPAND_CONCAT(STACK_NAME,_push)(&nodes, right_child);
+            #else
+            assert(__EXPAND_CONCAT(STACK_NAME,_push)(&nodes, left_child) == 0);
+            assert(__EXPAND_CONCAT(STACK_NAME,_push)(&nodes, right_child) == 0);
+            #endif
         }
     }
+
+    return 0;
 }
 
 static inline HEAP_INDEX __EXPAND_CONCAT(HEAP_NAME,_verify)(const HEAP_TYPE* heap_array, const HEAP_INDEX heap_array_size) {

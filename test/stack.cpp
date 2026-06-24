@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#define STACK_EXT_DYNAMIC_SIZE
 #define STACK_NAME stack
 #define STACK_TYPE int
 extern "C" {

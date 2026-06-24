@@ -1,5 +1,6 @@
 #include "ctools/trie/rtree.h"
 
+#define STACK_EXT_DYNAMIC_SIZE
 #define STACK_NAME stack
 #define STACK_TYPE uint16_t
 #include "ctools/stack.h"

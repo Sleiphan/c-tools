@@ -12,6 +12,11 @@
 #define STACK_MIN_CAPACITY 8
 #endif
 
+#ifdef STACK_CAPACITY
+#ifdef STACK_EXT_DYNAMIC_SIZE
+#error "STACK_CAPACITY and STACK_EXT_DYNAMIC_SIZE are incompatible"
+#endif // STACK_EXT_DYNAMIC_SIZE
+#endif // STACK_CAPACITY
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -22,20 +27,9 @@
 
 #include <errno.h>
 
-#include "ctools/define_concat.h"
+#include "define_concat.h"
 
-
-
-// typedef struct STACK_NAME STACK_NAME;
-
-// STACK_NAME* __EXPAND_CONCAT(STACK_NAME,_create)(const STACK_INDEX initial_capacity);
-// STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)(STACK_NAME* s);
-// int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE value);
-// int __EXPAND_CONCAT(STACK_NAME,_pop)(STACK_NAME* s, STACK_TYPE* dst);
-// void __EXPAND_CONCAT(STACK_NAME,_shutdown)(STACK_NAME* s);
-// void __EXPAND_CONCAT(STACK_NAME,_destroy)(STACK_NAME* s);
-
-
+#ifndef STACK_SOURCE_ONLY
 
 typedef struct STACK_NAME {
     STACK_INDEX size;
@@ -53,15 +47,41 @@ typedef struct STACK_NAME {
     #endif
 } STACK_NAME;
 
+// Headers
+
 static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
-    #ifdef STACK_CAPACITY
     STACK_NAME* s
-
-    #else
-    STACK_NAME* s,
+    #ifndef STACK_CAPACITY
+    ,
+    #ifdef STACK_EXT_DYNAMIC_SIZE
     const STACK_INDEX initial_capacity
+    #else
+    const STACK_INDEX capacity
+    #endif // STACK_EXT_DYNAMIC_SIZE
+    #endif // STACK_CAPACITY
+);
+static inline void __EXPAND_CONCAT(STACK_NAME,_shutdown)(STACK_NAME* s);
+static inline void __EXPAND_CONCAT(STACK_NAME,_destroy)(STACK_NAME* s);
+static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)(STACK_NAME* s);
+static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE value);
+static inline int __EXPAND_CONCAT(STACK_NAME,_pop)(STACK_NAME* s, STACK_TYPE* dst);
+static inline int __EXPAND_CONCAT(STACK_NAME,_clear)(STACK_NAME* s);
 
-    #endif
+#endif // STACK_SOURCE_ONLY
+#ifndef STACK_HEADER_ONLY
+
+// Implementation
+
+static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
+    STACK_NAME* s
+    #ifndef STACK_CAPACITY
+    ,
+    #ifdef STACK_EXT_DYNAMIC_SIZE
+    const STACK_INDEX initial_capacity
+    #else
+    const STACK_INDEX capacity
+    #endif // STACK_EXT_DYNAMIC_SIZE
+    #endif // STACK_CAPACITY
 ) {
     #ifdef STACK_EXT_THREAD_SAFE
     if (pthread_mutex_init(&s->lock, NULL)) {
@@ -70,10 +90,14 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
     #endif
 
     #ifndef STACK_CAPACITY
-    // Choose the largest of `initial_capacity` and `STACK_MIN_CAPACITY` as the starting capacity.
-    const STACK_INDEX starting_capacity = initial_capacity > STACK_MIN_CAPACITY ? initial_capacity : STACK_MIN_CAPACITY;
 
-    s->array = (STACK_TYPE*) malloc(starting_capacity * sizeof(STACK_TYPE));
+
+    #ifdef STACK_EXT_DYNAMIC_SIZE
+    // Choose the largest of `initial_capacity` and `STACK_MIN_CAPACITY` as the starting capacity.
+    const STACK_INDEX capacity = initial_capacity > STACK_MIN_CAPACITY ? initial_capacity : STACK_MIN_CAPACITY;
+    #endif // STACK_EXT_DYNAMIC_SIZE
+
+    s->array = (STACK_TYPE*) malloc(capacity * sizeof(STACK_TYPE));
     if (!s->array) {
         #ifdef STACK_EXT_THREAD_SAFE
         pthread_mutex_destroy(&s->lock);
@@ -81,7 +105,7 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
         return -1;
     }
 
-    s->capacity = starting_capacity;
+    s->capacity = capacity;
     #endif
 
     s->size = 0;
@@ -158,9 +182,8 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE va
         return -1;
     }
 
-    #endif
-
-    #ifndef STACK_CAPACITY
+    #endif // STACK_EXT_THREAD_SAFE
+    #ifdef STACK_EXT_DYNAMIC_SIZE
 
     // Increase capacity if the stack is full
     if (s->size == s->capacity) {
@@ -179,7 +202,14 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE va
         s->capacity *= 2;
     }
 
-    #endif
+    #else
+
+    if (s->size == s->capacity) {
+        errno = ENOBUFS;
+        return -1;
+    }
+
+    #endif // STACK_EXT_DYNAMIC_SIZE
 
     // Assign the value to the top of the stack,
     // then increase the size counter
@@ -193,7 +223,7 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE va
     return 0;
 }
 
-static inline int __EXPAND_CONCAT(STACK_NAME,_pop) (STACK_NAME* s, STACK_TYPE* dst) {
+static inline int __EXPAND_CONCAT(STACK_NAME,_pop)(STACK_NAME* s, STACK_TYPE* dst) {
     #ifdef STACK_EXT_THREAD_SAFE
 
     // Lock
@@ -222,7 +252,7 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_pop) (STACK_NAME* s, STACK_TYPE* d
     // then assign the removed value to the destination pointer
     *dst = s->array[--s->size];
 
-    #ifndef STACK_CAPACITY
+    #ifdef STACK_EXT_DYNAMIC_SIZE
 
     // Decrease capacity if the stack size is a quarter of the capacity
     if ((s->size <= s->capacity / 4) && (s->capacity / 2 >= STACK_MIN_CAPACITY)) {
@@ -240,7 +270,7 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_pop) (STACK_NAME* s, STACK_TYPE* d
         s->capacity /= 2;
     }
 
-    #endif
+    #endif // STACK_EXT_DYNAMIC_SIZE
 
     
     // Unlock
@@ -252,7 +282,7 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_pop) (STACK_NAME* s, STACK_TYPE* d
     return 0;
 }
 
-static inline int __EXPAND_CONCAT(STACK_NAME,_clear) (STACK_NAME* s) {
+static inline int __EXPAND_CONCAT(STACK_NAME,_clear)(STACK_NAME* s) {
     #ifdef STACK_EXT_THREAD_SAFE
 
     // Lock
@@ -270,7 +300,7 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_clear) (STACK_NAME* s) {
     // Reset the size counter
     s->size = 0;
 
-    #ifndef STACK_CAPACITY
+    #ifdef STACK_EXT_DYNAMIC_SIZE
 
     // Decrease capacity if the stack size is a quarter of the capacity
     if ((s->size <= s->capacity / 4) && (s->capacity / 2 >= STACK_MIN_CAPACITY)) {
@@ -288,9 +318,9 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_clear) (STACK_NAME* s) {
         s->capacity /= 2;
     }
 
-    #endif
+    #endif // STACK_EXT_DYNAMIC_SIZE
 
-    
+
     // Unlock
     #ifdef STACK_EXT_THREAD_SAFE
     pthread_mutex_unlock(&s->lock);
@@ -299,3 +329,5 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_clear) (STACK_NAME* s) {
     // Return success
     return 0;
 }
+
+#endif // STACK_HEADER_ONLY

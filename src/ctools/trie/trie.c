@@ -5,6 +5,7 @@ struct print_node {
     unsigned int indentation;
 };
 
+#define STACK_EXT_DYNAMIC_SIZE
 #define STACK_NAME node_stack
 #define STACK_INDEX unsigned int
 #define STACK_TYPE struct trie_node*

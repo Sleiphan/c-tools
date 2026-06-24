@@ -36,5 +36,11 @@ gtest_discover_tests(${TEST})
 
 set(TEST "T-heap")
 add_executable(${TEST} heap.cpp)
+target_compile_definitions(${TEST} PRIVATE CTOOLS_ENABLE_DEBUG_ASSERT)
+target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
+gtest_discover_tests(${TEST})
+
+set(TEST "T-stack_constant_capacity")
+add_executable(${TEST} stack_constant_capacity.cpp)
 target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
 gtest_discover_tests(${TEST})
