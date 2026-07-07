@@ -44,3 +44,8 @@ set(TEST "T-stack_constant_capacity")
 add_executable(${TEST} stack_constant_capacity.cpp)
 target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
 gtest_discover_tests(${TEST})
+
+set(TEST "T-kqueue")
+add_executable(${TEST} kqueue.cpp)
+target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
+gtest_discover_tests(${TEST})
