@@ -105,10 +105,6 @@ static inline void __EXPAND_CONCAT(QUEUE_NAME,_destroy)(struct QUEUE_NAME* q) {
     free(q->queues);
 }
 
-static inline void __EXPAND_CONCAT(QUEUE_NAME,_peek)(struct QUEUE_NAME* q, QUEUE_SUBQUEUE_INDEX queue_idx, QUEUE_TYPE* dst) {
-    *dst = q->array[q->queues[queue_idx].head];
-}
-
 static inline QUEUE_INDEX __EXPAND_CONCAT(QUEUE_NAME,_size)(struct QUEUE_NAME* q) {
     return q->free_stack_head;
 }
@@ -123,6 +119,17 @@ static inline bool __EXPAND_CONCAT(QUEUE_NAME,_is_full)(struct QUEUE_NAME* q) {
 
 static inline bool __EXPAND_CONCAT(QUEUE_NAME,_is_empty)(struct QUEUE_NAME* q) {
     return !q->free_stack_head;
+}
+
+static inline int __EXPAND_CONCAT(QUEUE_NAME,_peek)(struct QUEUE_NAME* q, QUEUE_SUBQUEUE_INDEX queue_idx, QUEUE_TYPE* dst) {
+    // Skip if queue is empty
+    if (__EXPAND_CONCAT(QUEUE_NAME,_is_empty(q))) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    *dst = q->array[q->queues[queue_idx].head];
+    return 0;
 }
 
 static int __EXPAND_CONCAT(QUEUE_NAME,_push)(struct QUEUE_NAME* q, const QUEUE_SUBQUEUE_INDEX queue_idx, const QUEUE_TYPE value) {
