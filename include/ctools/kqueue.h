@@ -1,9 +1,9 @@
 #ifndef QUEUE_NAME
-#error "QUEUE_NAME must be defined before including QUEUE_NAME.h"
+#error "QUEUE_NAME must be defined before including kqueue.h"
 #endif
 
 #ifndef QUEUE_TYPE
-#error "QUEUE_TYPE must be defined before including QUEUE_NAME.h"
+#error "QUEUE_TYPE must be defined before including kqueue.h"
 #endif
 
 #ifndef QUEUE_INDEX
