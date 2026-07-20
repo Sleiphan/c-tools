@@ -49,3 +49,8 @@ set(TEST "T-kqueue")
 add_executable(${TEST} kqueue.cpp)
 target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
 gtest_discover_tests(${TEST})
+
+set(TEST "T-twheel")
+add_executable(${TEST} twheel.cpp)
+target_link_libraries(${TEST} PRIVATE ${CTOOLS_LIB} GTest::gtest_main)
+gtest_discover_tests(${TEST})
