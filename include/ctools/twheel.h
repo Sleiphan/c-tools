@@ -26,6 +26,10 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
 
+#ifndef MAX
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
+
 // static const TWHEEL_INDEX __EXPAND_CONCAT(TWHEEL_NAME,_max_size) = ((TWHEEL_INDEX)-1) ^ ((((TWHEEL_INDEX)-1) < 0) << (sizeof(TWHEEL_INDEX) * 8 - 1));
 
 struct __EXPAND_CONCAT(TWHEEL_NAME,_timer) {
@@ -64,6 +68,8 @@ struct TWHEEL_NAME {
     // The stack of free data slots
     TWHEEL_INDEX* free_stack;
     TWHEEL_INDEX free_stack_head;
+    // The highest value of the free-stack's head since the last call to twheel_optimize().
+    TWHEEL_INDEX free_stack_head_max;
 
     // The expiration queue
     TWHEEL_INDEX exp_head;
@@ -135,6 +141,7 @@ int __EXPAND_CONCAT(TWHEEL_NAME,_create)(struct TWHEEL_NAME* wheel, const TWHEEL
         .current_bucket = 0,
         .free_stack = free_stack,
         .free_stack_head = 0,
+        .free_stack_head_max = 0,
         .exp_head = timeout_slot_capacity,
         .exp_tail = timeout_slot_capacity,
     };
@@ -220,6 +227,7 @@ static inline int __EXPAND_CONCAT(TWHEEL_NAME,_schedule)(struct TWHEEL_NAME* tw,
 
     // Pop an available timer
     const TWHEEL_INDEX new_timer_idx = tw->free_stack[tw->free_stack_head++];
+    tw->free_stack_head_max = MAX(tw->free_stack_head, tw->free_stack_head_max);
 
     // Assign the return value to the new timer
     tw->return_values[new_timer_idx] = value;
@@ -305,6 +313,16 @@ static inline int __EXPAND_CONCAT(TWHEEL_NAME,_pop)(struct TWHEEL_NAME* tw, TWHE
     return 0;
 }
 
+int __EXPAND_CONCAT(TWHEEL_NAME,_optimize_comp_func)(const void* a, const void* b) {
+    const TWHEEL_INDEX A = (*(TWHEEL_INDEX*)a);
+    const TWHEEL_INDEX B = (*(TWHEEL_INDEX*)b);
+    return A < B ? 1 : -1;
+}
 
+static inline void __EXPAND_CONCAT(TWHEEL_NAME,_optimize)(struct TWHEEL_NAME* tw) {
+    qsort(&tw->free_stack[tw->free_stack_head], tw->free_stack_head_max - tw->free_stack_head, sizeof(TWHEEL_INDEX), __EXPAND_CONCAT(TWHEEL_NAME,_optimize_comp_func));
+    tw->free_stack_head_max = tw->free_stack_head;
+}
 
 #undef MIN
+#undef MAX
