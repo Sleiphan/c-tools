@@ -181,3 +181,67 @@ TEST(twheel, webserver_case) {
     free(timed_out_clients);
     free(handles);
 }
+
+TEST(twheel, wait_returns_closest_timeout) {
+    const unsigned int time_span_ms = 40000;
+    const unsigned int interval_ms = 100;
+    const unsigned int bucket_count = time_span_ms / interval_ms;
+    const unsigned int timeout_1_ms = 300;
+
+    struct twheel tw;
+    EXPECT_EQ(twheel_create(&tw, interval_ms, bucket_count, bucket_count * 2), 0);
+
+    EXPECT_EQ(twheel_schedule(&tw, timeout_1_ms, 1, NULL), 0);
+    EXPECT_EQ(twheel_schedule(&tw, timeout_1_ms * 2, 2, NULL), 0);
+
+    TWHEEL_TICK time = 0;
+    EXPECT_EQ(twheel_wait(&tw, &time), 0);
+    EXPECT_EQ(time, timeout_1_ms);
+
+    twheel_destroy(&tw);
+}
+
+TEST(twheel, wait_returns_closest_timeout_after_cancel) {
+    const unsigned int time_span_ms = 40000;
+    const unsigned int interval_ms = 100;
+    const unsigned int bucket_count = time_span_ms / interval_ms;
+    const unsigned int timeout_2_ms = 400;
+
+    struct twheel tw;
+    EXPECT_EQ(twheel_create(&tw, interval_ms, bucket_count, bucket_count * 2), 0);
+
+    struct twheel_handle handle;
+
+    EXPECT_EQ(twheel_schedule(&tw, timeout_2_ms / 2, 1, &handle), 0);
+    EXPECT_EQ(twheel_schedule(&tw, timeout_2_ms, 2, NULL), 0);
+
+    EXPECT_EQ(twheel_cancel(&tw, handle), 0);
+
+    TWHEEL_TICK time = 0;
+    EXPECT_EQ(twheel_wait(&tw, &time), 0);
+    EXPECT_EQ(time, timeout_2_ms);
+
+    twheel_destroy(&tw);
+}
+
+TEST(twheel, wait_returns_closest_timeout_wrapped) {
+    const unsigned int time_span_ms = 40000;
+    const unsigned int interval_ms = 100;
+    const unsigned int bucket_count = time_span_ms / interval_ms;
+    const unsigned int timeout_ms = time_span_ms * 3 / 4;
+
+    struct twheel tw;
+    EXPECT_EQ(twheel_create(&tw, interval_ms, bucket_count, bucket_count * 2), 0);
+
+    // Advance time wheel halfway through the wheel
+    EXPECT_EQ(twheel_advance(&tw, time_span_ms / 2), 0);
+
+    // Add a timer that wraps past the end of the wheel
+    EXPECT_EQ(twheel_schedule(&tw, timeout_ms, 1, NULL), 0);
+
+    TWHEEL_TICK time = 0;
+    EXPECT_EQ(twheel_wait(&tw, &time), 0);
+    EXPECT_EQ(time, timeout_ms);
+
+    twheel_destroy(&tw);
+}

@@ -21,12 +21,11 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "ctools/define_concat.h"
+#include "ctools/bitset.h"
 
 #ifndef MIN
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
-
-// static const TWHEEL_INDEX __EXPAND_CONCAT(TWHEEL_NAME,_max_size) = ((TWHEEL_INDEX)-1) ^ ((((TWHEEL_INDEX)-1) < 0) << (sizeof(TWHEEL_INDEX) * 8 - 1));
 
 struct __EXPAND_CONCAT(TWHEEL_NAME,_timer) {
     TWHEEL_INDEX next;
@@ -68,6 +67,9 @@ struct TWHEEL_NAME {
     // The expiration queue
     TWHEEL_INDEX exp_head;
     TWHEEL_INDEX exp_tail;
+
+    // 
+    struct bitset occupied_buckets;
 };
 
 int __EXPAND_CONCAT(TWHEEL_NAME,_create)(struct TWHEEL_NAME* wheel, const TWHEEL_TICK interval, const unsigned int bucket_count, const TWHEEL_INDEX timeout_slot_capacity) {
@@ -106,6 +108,15 @@ int __EXPAND_CONCAT(TWHEEL_NAME,_create)(struct TWHEEL_NAME* wheel, const TWHEEL
         return -1;
     }
 
+    struct bitset occupied_buckets;
+    if (bitset_create(&occupied_buckets, bucket_count)) {
+        free(return_values);
+        free(timers);
+        free(buckets);
+        free(free_stack);
+        return -1;
+    }
+
     for (TWHEEL_INDEX i = 0; i < timeout_slot_capacity; i++) {
         free_stack[i] = i;
         timers[i] = (struct __EXPAND_CONCAT(TWHEEL_NAME,_timer)) {
@@ -137,12 +148,14 @@ int __EXPAND_CONCAT(TWHEEL_NAME,_create)(struct TWHEEL_NAME* wheel, const TWHEEL
         .free_stack_head = 0,
         .exp_head = timeout_slot_capacity,
         .exp_tail = timeout_slot_capacity,
+        .occupied_buckets = occupied_buckets,
     };
 
     return 0;
 }
 
 static inline void __EXPAND_CONCAT(TWHEEL_NAME,_destroy)(struct TWHEEL_NAME* tw) {
+    bitset_destroy(&tw->occupied_buckets);
     free(tw->return_values);
     free(tw->timers);
     free(tw->buckets);
@@ -186,6 +199,7 @@ static inline int __EXPAND_CONCAT(TWHEEL_NAME,_advance)(struct TWHEEL_NAME* tw, 
         // Reset the bucket
         tw->buckets[bucket_idx].head = tw->capacity;
         tw->buckets[bucket_idx].tail = tw->capacity;
+        bitset_assign(&tw->occupied_buckets, bucket_idx, 0); // Mark the bucket as unoccupied
 
         // Increment the counter on expired buckets
         buckets_expired_count++;
@@ -237,9 +251,11 @@ static inline int __EXPAND_CONCAT(TWHEEL_NAME,_schedule)(struct TWHEEL_NAME* tw,
         tw->timers[tw->buckets[bucket].tail].next = new_timer_idx;
     tw->buckets[bucket].tail = new_timer_idx;
 
-    // Update the head in case this is the first timer
-    if (tw->buckets[bucket].head == tw->capacity)
-        tw->buckets[bucket].head = new_timer_idx;
+    // In case this is the first timer
+    if (tw->buckets[bucket].head == tw->capacity) {
+        tw->buckets[bucket].head = new_timer_idx; // Update the head
+        bitset_assign(&tw->occupied_buckets, bucket, 1); // Mark the bucket as occupied
+    }
 
     // Give the caller a handle to the new timer, so that it can be canceled.
     if (timer_handle) {
@@ -278,6 +294,7 @@ static inline int __EXPAND_CONCAT(TWHEEL_NAME,_cancel)(struct TWHEEL_NAME* tw, c
     if (is_first_element & is_final_element) {
         tw->buckets[bucket].head = tw->capacity;
         tw->buckets[bucket].tail = tw->capacity;
+        bitset_assign(&tw->occupied_buckets, bucket, 0); // Mark the bucket as unoccupied
     }
 
     return 0;
@@ -305,6 +322,28 @@ static inline int __EXPAND_CONCAT(TWHEEL_NAME,_pop)(struct TWHEEL_NAME* tw, TWHE
     return 0;
 }
 
+static inline TWHEEL_TICK __EXPAND_CONCAT(TWHEEL_NAME,_wait)(struct TWHEEL_NAME* tw, TWHEEL_TICK* ticks) {
+    if (__EXPAND_CONCAT(TWHEEL_NAME,_is_empty)(tw))
+        return 1;
 
+    TWHEEL_BUCKET_INDEX next_bucket = tw->bucket_count;
+
+    // Find the next bucket
+    int err = bitset_search_up(&tw->occupied_buckets, &next_bucket, tw->current_bucket + 1, tw->bucket_count);
+    if (err)
+        err = bitset_search_up(&tw->occupied_buckets, &next_bucket, 0, tw->current_bucket);
+
+    // If we found a bucket, return the time to the next timeout
+    if (!err) {
+        const TWHEEL_BUCKET_INDEX bucket_distance =
+            next_bucket > tw->current_bucket ?
+            next_bucket - tw->current_bucket :
+            tw->bucket_count - tw->current_bucket + next_bucket;
+
+        *ticks = bucket_distance * tw->interval - tw->time_modulo;
+    }
+
+    return err;
+}
 
 #undef MIN
