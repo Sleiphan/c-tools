@@ -80,6 +80,8 @@ int bitset_search_up(const struct bitset* bs, _BITSET_INDEX* dst, const _BITSET_
     const _BITSET_INDEX entry_count = bs->bit_count / (sizeof(_BITSET_ENTRY) * 8) + 1;
     const _BITSET_INDEX from_idx_maj = from / (sizeof(_BITSET_ENTRY) * 8);
     const _BITSET_INDEX from_idx_min = from & (sizeof(_BITSET_ENTRY) * 8 - 1);
+    const _BITSET_INDEX   to_idx_maj =   to / (sizeof(_BITSET_ENTRY) * 8);
+    const _BITSET_INDEX   to_idx_min =   to & (sizeof(_BITSET_ENTRY) * 8 - 1);
 
     // Backup the entry we're searching from
     const _BITSET_ENTRY from_entry_bckp = bs->entries[from_idx_maj];
@@ -89,17 +91,30 @@ int bitset_search_up(const struct bitset* bs, _BITSET_INDEX* dst, const _BITSET_
 
     // Find the next entry containing a set bit
     _BITSET_INDEX entry_idx = from_idx_maj;
-    for (; entry_idx < to && bs->entries[entry_idx] == 0; entry_idx++);
+    for (; entry_idx < to_idx_maj && bs->entries[entry_idx] == 0; entry_idx++);
+
+    // Avoid assigning `dst` if no set bit was found
+    if (entry_idx == entry_count) {
+        // Remove the filter
+        bs->entries[from_idx_maj] = from_entry_bckp;
+
+        // Indicate no findings
+        return 1;
+    }
+
+    // Find the lowest set bit
+    const int bit = __builtin_ctzll(bs->entries[entry_idx]);
 
     // Remove the filter
     bs->entries[from_idx_maj] = from_entry_bckp;
 
-    // Avoid assigning `dst` if no set bit was found
-    if (entry_idx == entry_count)
+    // Cancel if the discovered bit is beyond the upper bound
+    int outside_upper_bound = entry_idx == to_idx_maj && bit >= to_idx_min;
+    if (outside_upper_bound)
         return 1;
 
     // Return the set bit's index to the caller
-    *dst = __builtin_ctzll(bs->entries[entry_idx]) + entry_idx * sizeof(_BITSET_ENTRY) * 8;
+    *dst = bit + entry_idx * sizeof(_BITSET_ENTRY) * 8;
 
     return 0;
 }
