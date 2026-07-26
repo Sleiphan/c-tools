@@ -139,6 +139,12 @@ static int __EXPAND_CONCAT(QUEUE_NAME,_push)(struct QUEUE_NAME* q, const QUEUE_S
         return -1;
     }
 
+    // Error if the queue_idx is invalid
+    if (queue_idx >= q->queue_count) {
+        errno = EINVAL;
+        return -1;
+    }
+
     // Pop new entry from the free stack
     const QUEUE_INDEX new_entry_idx = q->free_stack[q->free_stack_head++];
 
