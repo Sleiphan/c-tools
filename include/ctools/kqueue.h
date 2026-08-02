@@ -151,8 +151,6 @@ static int __EXPAND_CONCAT(QUEUE_NAME,_push)(struct QUEUE_NAME* q, const QUEUE_S
     // Assign the submitted value to the new element
     q->array[new_entry_idx] = value;
 
-    int value_set = q->array[new_entry_idx];
-
     // Set the next-value of the tail entry to point to the new entry
     if (q->queues[queue_idx].tail != __EXPAND_CONCAT(QUEUE_NAME,_max_size))
         q->nexts[q->queues[queue_idx].tail] = new_entry_idx;
