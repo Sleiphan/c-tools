@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
 
-#define QUEUE_NAME my_kqueue
-#define QUEUE_TYPE int
-#define QUEUE_INDEX uint8_t
+#define KQUEUE_NAME my_kqueue
+#define KQUEUE_TYPE int
+#define KQUEUE_INDEX uint8_t
 extern "C" {
     #include "ctools/kqueue.h"
 }
-#undef QUEUE_NAME
-#undef QUEUE_TYPE
-#undef QUEUE_INDEX
+#undef KQUEUE_NAME
+#undef KQUEUE_TYPE
+#undef KQUEUE_INDEX
 
 
 TEST(kqueue, queues_work_in_parallel) {
