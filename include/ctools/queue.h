@@ -12,8 +12,10 @@
 #endif
 
 #include <stdbool.h>
-#include <string.h>
+#ifndef QUEUE_HEADER_ONLY
 #include <errno.h>
+#include <string.h>
+#endif
 
 #include "ctools/define_concat.h"
 
@@ -26,6 +28,22 @@ typedef struct QUEUE_NAME {
 } QUEUE_NAME;
 
 static const QUEUE_INDEX __EXPAND_CONCAT(QUEUE_NAME,_max_size) = (QUEUE_INDEX)1 << (sizeof(QUEUE_INDEX) * 8 - 1 - !(((QUEUE_INDEX)-1) > 0));
+
+
+
+static        int         __EXPAND_CONCAT(QUEUE_NAME,_create)  (QUEUE_NAME* queue_dst, QUEUE_INDEX minimum_capacity);
+static inline void        __EXPAND_CONCAT(QUEUE_NAME,_destroy) (QUEUE_NAME* q);
+static inline void        __EXPAND_CONCAT(QUEUE_NAME,_peek)    (QUEUE_NAME* q, QUEUE_TYPE* dst);
+static inline QUEUE_INDEX __EXPAND_CONCAT(QUEUE_NAME,_size)    (QUEUE_NAME* q);
+static inline bool        __EXPAND_CONCAT(QUEUE_NAME,_capacity)(QUEUE_NAME* q);
+static inline bool        __EXPAND_CONCAT(QUEUE_NAME,_is_full) (QUEUE_NAME* q);
+static inline bool        __EXPAND_CONCAT(QUEUE_NAME,_is_empty)(QUEUE_NAME* q);
+static inline int         __EXPAND_CONCAT(QUEUE_NAME,_push)    (QUEUE_NAME* q, QUEUE_TYPE value);
+static inline int         __EXPAND_CONCAT(QUEUE_NAME,_pop)     (QUEUE_NAME* q, QUEUE_TYPE* dst);
+
+
+
+#ifndef QUEUE_HEADER_ONLY
 
 static int __EXPAND_CONCAT(QUEUE_NAME,_create)(QUEUE_NAME* queue_dst, QUEUE_INDEX minimum_capacity) {
     // Skip if the requested size is not supported, given the QUEUE_INDEX type
@@ -87,8 +105,6 @@ static inline bool __EXPAND_CONCAT(QUEUE_NAME,_is_empty)(QUEUE_NAME* q) {
     return q->front == q->back;
 }
 
-
-
 static inline int __EXPAND_CONCAT(QUEUE_NAME,_push)(QUEUE_NAME* q, QUEUE_TYPE value) {
     // Skip if queue is full
     if (q->front == ((q->back + 1) & q->capacity_mask))
@@ -110,3 +126,5 @@ static inline int __EXPAND_CONCAT(QUEUE_NAME,_pop)(QUEUE_NAME* q, QUEUE_TYPE* ds
 
     return 0;
 }
+
+#endif // QUEUE_HEADER_ONLY

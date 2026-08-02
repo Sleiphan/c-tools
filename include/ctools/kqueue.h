@@ -20,7 +20,7 @@
 #include "ctools/define_concat.h"
 
 #ifndef KQUEUE_HEADER_ONLY
-#include <stdlib.h> // Only for malloc()
+#include <stdlib.h>
 #include <errno.h>
 #endif
 
@@ -47,7 +47,6 @@ static const KQUEUE_INDEX __EXPAND_CONCAT(KQUEUE_NAME,_max_size) = ((KQUEUE_INDE
 
 
 
-#ifdef KQUEUE_HEADER_ONLY
 static        int          __EXPAND_CONCAT(KQUEUE_NAME,_create)  (struct KQUEUE_NAME* queue_dst, const KQUEUE_INDEX capacity, const KQUEUE_SUBQUEUE_INDEX queue_count);
 static inline void         __EXPAND_CONCAT(KQUEUE_NAME,_destroy) (struct KQUEUE_NAME* q);
 static inline KQUEUE_INDEX __EXPAND_CONCAT(KQUEUE_NAME,_size)    (struct KQUEUE_NAME* q);
@@ -57,7 +56,6 @@ static inline bool         __EXPAND_CONCAT(KQUEUE_NAME,_is_empty)(struct KQUEUE_
 static inline int          __EXPAND_CONCAT(KQUEUE_NAME,_peek)    (struct KQUEUE_NAME* q, KQUEUE_SUBQUEUE_INDEX queue_idx, KQUEUE_TYPE* dst);
 static        int          __EXPAND_CONCAT(KQUEUE_NAME,_push)    (struct KQUEUE_NAME* q, const KQUEUE_SUBQUEUE_INDEX queue_idx, const KQUEUE_TYPE value);
 static        int          __EXPAND_CONCAT(KQUEUE_NAME,_pop)     (struct KQUEUE_NAME* q, const KQUEUE_SUBQUEUE_INDEX queue_idx, KQUEUE_TYPE* dst);
-#endif
 
 
 

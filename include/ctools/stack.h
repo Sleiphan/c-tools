@@ -1,9 +1,11 @@
 #ifndef STACK_TYPE
 #error "STACK_TYPE must be defined before including stack.h"
 #endif
+
 #ifndef STACK_NAME
 #error "STACK_NAME must be defined before including stack.h"
 #endif
+
 #ifndef STACK_INDEX
 #define STACK_INDEX unsigned int
 #endif
@@ -15,23 +17,22 @@
 #ifdef STACK_CAPACITY
 #ifdef STACK_EXT_DYNAMIC_SIZE
 #error "STACK_CAPACITY and STACK_EXT_DYNAMIC_SIZE are incompatible"
-#endif // STACK_EXT_DYNAMIC_SIZE
-#endif // STACK_CAPACITY
+#endif
+#endif
 
+
+
+#include <errno.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
+#include "define_concat.h"
 #ifdef STACK_EXT_THREAD_SAFE
 #include <pthread.h>
 #endif
 
-#include <errno.h>
 
-#include "define_concat.h"
 
-#ifndef STACK_SOURCE_ONLY
-
-typedef struct STACK_NAME {
+struct STACK_NAME {
     STACK_INDEX size;
 
     #ifdef STACK_CAPACITY
@@ -45,12 +46,12 @@ typedef struct STACK_NAME {
     pthread_mutex_t lock;
     bool shutting_down;
     #endif
-} STACK_NAME;
+};
 
-// Headers
+
 
 static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
-    STACK_NAME* s
+    struct STACK_NAME* s
     #ifndef STACK_CAPACITY
     ,
     #ifdef STACK_EXT_DYNAMIC_SIZE
@@ -60,20 +61,20 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
     #endif // STACK_EXT_DYNAMIC_SIZE
     #endif // STACK_CAPACITY
 );
-static inline void __EXPAND_CONCAT(STACK_NAME,_shutdown)(STACK_NAME* s);
-static inline void __EXPAND_CONCAT(STACK_NAME,_destroy)(STACK_NAME* s);
-static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)(STACK_NAME* s);
-static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE value);
-static inline int __EXPAND_CONCAT(STACK_NAME,_pop)(STACK_NAME* s, STACK_TYPE* dst);
-static inline int __EXPAND_CONCAT(STACK_NAME,_clear)(STACK_NAME* s);
 
-#endif // STACK_SOURCE_ONLY
+static inline void        __EXPAND_CONCAT(STACK_NAME,_shutdown)(struct STACK_NAME* s);
+static inline void        __EXPAND_CONCAT(STACK_NAME,_destroy) (struct STACK_NAME* s);
+static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)    (struct STACK_NAME* s);
+static inline int         __EXPAND_CONCAT(STACK_NAME,_push)    (struct STACK_NAME* s, STACK_TYPE value);
+static inline int         __EXPAND_CONCAT(STACK_NAME,_pop)     (struct STACK_NAME* s, STACK_TYPE* dst);
+static inline int         __EXPAND_CONCAT(STACK_NAME,_clear)   (struct STACK_NAME* s);
+
+
+
 #ifndef STACK_HEADER_ONLY
 
-// Implementation
-
 static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
-    STACK_NAME* s
+    struct STACK_NAME* s
     #ifndef STACK_CAPACITY
     ,
     #ifdef STACK_EXT_DYNAMIC_SIZE
@@ -117,7 +118,7 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
     return 0;
 }
 
-static inline void __EXPAND_CONCAT(STACK_NAME,_shutdown)(STACK_NAME* s) {
+static inline void __EXPAND_CONCAT(STACK_NAME,_shutdown)(struct STACK_NAME* s) {
     #ifdef STACK_EXT_THREAD_SAFE
 
     // Lock
@@ -131,7 +132,7 @@ static inline void __EXPAND_CONCAT(STACK_NAME,_shutdown)(STACK_NAME* s) {
     #endif
 }
 
-static inline void __EXPAND_CONCAT(STACK_NAME,_destroy)(STACK_NAME* s) {
+static inline void __EXPAND_CONCAT(STACK_NAME,_destroy)(struct STACK_NAME* s) {
     // Aquire lock
     #ifdef STACK_EXT_THREAD_SAFE
     pthread_mutex_lock(&s->lock);
@@ -153,7 +154,7 @@ static inline void __EXPAND_CONCAT(STACK_NAME,_destroy)(STACK_NAME* s) {
     #endif
 }
 
-static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)(STACK_NAME* s) {
+static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)(struct STACK_NAME* s) {
     #ifdef STACK_EXT_THREAD_SAFE
 
     pthread_mutex_lock(&s->lock);
@@ -169,7 +170,7 @@ static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)(STACK_NAME* s) {
     #endif
 }
 
-static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE value) {
+static inline int __EXPAND_CONCAT(STACK_NAME,_push)(struct STACK_NAME* s, STACK_TYPE value) {
     #ifdef STACK_EXT_THREAD_SAFE
 
     // Lock
@@ -223,7 +224,7 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_push)(STACK_NAME* s, STACK_TYPE va
     return 0;
 }
 
-static inline int __EXPAND_CONCAT(STACK_NAME,_pop)(STACK_NAME* s, STACK_TYPE* dst) {
+static inline int __EXPAND_CONCAT(STACK_NAME,_pop)(struct STACK_NAME* s, STACK_TYPE* dst) {
     #ifdef STACK_EXT_THREAD_SAFE
 
     // Lock
@@ -282,7 +283,7 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_pop)(STACK_NAME* s, STACK_TYPE* ds
     return 0;
 }
 
-static inline int __EXPAND_CONCAT(STACK_NAME,_clear)(STACK_NAME* s) {
+static inline int __EXPAND_CONCAT(STACK_NAME,_clear)(struct STACK_NAME* s) {
     #ifdef STACK_EXT_THREAD_SAFE
 
     // Lock

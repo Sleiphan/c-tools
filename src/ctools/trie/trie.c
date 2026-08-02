@@ -46,7 +46,7 @@ void trie_node_destroy(struct trie_node* node) {
 
 void trie_destroy(struct trie_node* top_node) {
     struct trie_node* current_node;
-    node_stack deletion_queue;
+    struct node_stack deletion_queue;
     node_stack_create(&deletion_queue, 0);
     node_stack_push(&deletion_queue, top_node);
 

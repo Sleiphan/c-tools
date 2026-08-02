@@ -14,23 +14,22 @@
 #define HEAP_INDEX unsigned int
 #endif
 
-#ifndef HEAP_SWAP
-#define HEAP_SWAP(LHS, RHS) {\
-    HEAP_TYPE temp = LHS;\
-    LHS = RHS;\
-    RHS = temp;\
-}
-#endif
+
 
 #include "ctools/define_concat.h"
+
+#ifndef HEAP_HEADER_ONLY
+#include <stdlib.h>
+
 #define STACK_NAME __EXPAND_CONCAT(HEAP_NAME,_stack)
 #define STACK_TYPE HEAP_INDEX
 #include "ctools/stack.h"
-#include <stdlib.h>
 
 #ifdef CTOOLS_ENABLE_DEBUG_ASSERT
 #include <assert.h>
 #endif
+#endif
+
 
 
 typedef struct HEAP_NAME {
@@ -39,19 +38,37 @@ typedef struct HEAP_NAME {
     HEAP_TYPE* array;
 } HEAP_NAME;
 
-static inline HEAP_INDEX __EXPAND_CONCAT(HEAP_NAME,_size)(HEAP_NAME* h) {
-    return h->size;
-}
-
-static inline HEAP_TYPE __EXPAND_CONCAT(HEAP_NAME,_peek)(HEAP_NAME* h) {
-    return h->array[0];
-}
-
 /**
  * @brief Allocates and initializes a new heap.
  * @param initial_capacity The initial capacity of the internal storage array that contains the nodes of the heap. Must be greater than 0.
  * @return A pointer to the newly allocated and initialized heap object.
  */
+static inline HEAP_NAME* __EXPAND_CONCAT(HEAP_NAME,_create) (const HEAP_INDEX initial_capacity);
+
+/**
+ * @brief De-allocates a heap.
+ * @param h A pointer to a heap allocated by the _create() function.
+ */
+static inline void       __EXPAND_CONCAT(HEAP_NAME,_destroy)(HEAP_NAME* h);
+static inline int        __EXPAND_CONCAT(HEAP_NAME,_push)   (HEAP_NAME* h, HEAP_TYPE value);
+static inline int        __EXPAND_CONCAT(HEAP_NAME,_pop)    (HEAP_NAME* h, HEAP_TYPE* dst);
+static inline HEAP_INDEX __EXPAND_CONCAT(HEAP_NAME,_size)   (HEAP_NAME* h);
+static inline HEAP_TYPE  __EXPAND_CONCAT(HEAP_NAME,_peek)   (HEAP_NAME* h);
+static inline int        __EXPAND_CONCAT(HEAP_NAME,_build)  (HEAP_TYPE* heap_array, const HEAP_INDEX heap_array_size);
+static inline HEAP_INDEX __EXPAND_CONCAT(HEAP_NAME,_verify) (const HEAP_TYPE* heap_array, const HEAP_INDEX heap_array_size);
+
+
+
+#ifndef HEAP_HEADER_ONLY
+
+#ifndef HEAP_SWAP
+#define HEAP_SWAP(LHS, RHS) {\
+    HEAP_TYPE temp = LHS;\
+    LHS = RHS;\
+    RHS = temp;\
+}
+#endif
+
 static inline HEAP_NAME* __EXPAND_CONCAT(HEAP_NAME,_create)(const HEAP_INDEX initial_capacity) {
     // Allocate a new heap struct
     HEAP_NAME* h = (HEAP_NAME*) malloc(sizeof(HEAP_NAME));
@@ -78,10 +95,6 @@ static inline HEAP_NAME* __EXPAND_CONCAT(HEAP_NAME,_create)(const HEAP_INDEX ini
     return h;
 }
 
-/**
- * @brief De-allocates a heap.
- * @param h A pointer to a heap allocated by the _create() function.
- */
 static inline void __EXPAND_CONCAT(HEAP_NAME,_destroy)(HEAP_NAME* h) {
     free(h->array);
     free(h);
@@ -191,6 +204,14 @@ static inline int __EXPAND_CONCAT(HEAP_NAME,_pop)(HEAP_NAME* h, HEAP_TYPE* dst) 
     return 0;
 }
 
+static inline HEAP_INDEX __EXPAND_CONCAT(HEAP_NAME,_size)(HEAP_NAME* h) {
+    return h->size;
+}
+
+static inline HEAP_TYPE __EXPAND_CONCAT(HEAP_NAME,_peek)(HEAP_NAME* h) {
+    return h->array[0];
+}
+
 
 
 static inline int __EXPAND_CONCAT(HEAP_NAME,_build)(HEAP_TYPE* heap_array, const HEAP_INDEX heap_array_size) {
@@ -268,3 +289,5 @@ static inline HEAP_INDEX __EXPAND_CONCAT(HEAP_NAME,_verify)(const HEAP_TYPE* hea
 }
 
 #undef HEAP_SWAP
+
+#endif // HEAP_HEADER_ONLY

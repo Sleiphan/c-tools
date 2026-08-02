@@ -18,14 +18,16 @@
 #define TWHEEL_TICK unsigned int
 #endif
 
-#include <stdlib.h>
-#include <errno.h>
-#include "ctools/define_concat.h"
-#include "ctools/bitset.h"
 
-#ifndef MIN
-#define MIN(a,b) (((a)<(b))?(a):(b))
+
+#include "ctools/define_concat.h"
+#ifndef TWHEEL_HEADER_ONLY
+#include <errno.h>
+#include <stdlib.h>
+#include "ctools/bitset.h"
 #endif
+
+
 
 struct __EXPAND_CONCAT(TWHEEL_NAME,_timer) {
     TWHEEL_INDEX next;
@@ -71,6 +73,24 @@ struct TWHEEL_NAME {
     // 
     struct bitset occupied_buckets;
 };
+
+              int         __EXPAND_CONCAT(TWHEEL_NAME,_create)  (struct TWHEEL_NAME* wheel, const TWHEEL_TICK interval, const unsigned int bucket_count, const TWHEEL_INDEX timeout_slot_capacity);
+static inline void        __EXPAND_CONCAT(TWHEEL_NAME,_destroy) (struct TWHEEL_NAME* tw);
+static inline bool        __EXPAND_CONCAT(TWHEEL_NAME,_is_full) (struct TWHEEL_NAME* tw);
+static inline bool        __EXPAND_CONCAT(TWHEEL_NAME,_is_empty)(struct TWHEEL_NAME* tw);
+static inline int         __EXPAND_CONCAT(TWHEEL_NAME,_advance) (struct TWHEEL_NAME* tw, TWHEEL_TICK time_units);
+static inline int         __EXPAND_CONCAT(TWHEEL_NAME,_schedule)(struct TWHEEL_NAME* tw, TWHEEL_TICK timeout, TWHEEL_TYPE value, struct __EXPAND_CONCAT(TWHEEL_NAME,_handle)* timer_handle);
+static inline int         __EXPAND_CONCAT(TWHEEL_NAME,_cancel)  (struct TWHEEL_NAME* tw, const struct __EXPAND_CONCAT(TWHEEL_NAME,_handle) timer_handle);
+static inline int         __EXPAND_CONCAT(TWHEEL_NAME,_pop)     (struct TWHEEL_NAME* tw, TWHEEL_TYPE* out_value);
+static inline TWHEEL_TICK __EXPAND_CONCAT(TWHEEL_NAME,_wait)    (struct TWHEEL_NAME* tw, TWHEEL_TICK* ticks);
+
+
+
+#ifndef TWHEEL_HEADER_ONLY
+
+#ifndef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
 
 int __EXPAND_CONCAT(TWHEEL_NAME,_create)(struct TWHEEL_NAME* wheel, const TWHEEL_TICK interval, const unsigned int bucket_count, const TWHEEL_INDEX timeout_slot_capacity) {
     // Verify parameter values
@@ -347,3 +367,4 @@ static inline TWHEEL_TICK __EXPAND_CONCAT(TWHEEL_NAME,_wait)(struct TWHEEL_NAME*
 }
 
 #undef MIN
+#endif // TWHEEL_HEADER_ONLY
