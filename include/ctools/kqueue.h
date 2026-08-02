@@ -18,13 +18,14 @@
 
 #include <stdbool.h>
 #include "ctools/define_concat.h"
-
-#ifndef KQUEUE_HEADER_ONLY
+#ifndef KQUEUE_NO_IMPLEMENTATION
 #include <stdlib.h>
 #include <errno.h>
 #endif
 
 
+
+#ifndef KQUEUE_NO_INTERFACE
 
 struct __EXPAND_CONCAT(KQUEUE_NAME,_subqueue) {
     KQUEUE_INDEX head;
@@ -45,8 +46,6 @@ struct KQUEUE_NAME {
 
 static const KQUEUE_INDEX __EXPAND_CONCAT(KQUEUE_NAME,_max_size) = ((KQUEUE_INDEX)-1) ^ ((((KQUEUE_INDEX)-1) < 0) << (sizeof(KQUEUE_INDEX) * 8 - 1));
 
-
-
 static        int          __EXPAND_CONCAT(KQUEUE_NAME,_create)  (struct KQUEUE_NAME* queue_dst, const KQUEUE_INDEX capacity, const KQUEUE_SUBQUEUE_INDEX queue_count);
 static inline void         __EXPAND_CONCAT(KQUEUE_NAME,_destroy) (struct KQUEUE_NAME* q);
 static inline KQUEUE_INDEX __EXPAND_CONCAT(KQUEUE_NAME,_size)    (struct KQUEUE_NAME* q);
@@ -57,9 +56,11 @@ static inline int          __EXPAND_CONCAT(KQUEUE_NAME,_peek)    (struct KQUEUE_
 static        int          __EXPAND_CONCAT(KQUEUE_NAME,_push)    (struct KQUEUE_NAME* q, const KQUEUE_SUBQUEUE_INDEX queue_idx, const KQUEUE_TYPE value);
 static        int          __EXPAND_CONCAT(KQUEUE_NAME,_pop)     (struct KQUEUE_NAME* q, const KQUEUE_SUBQUEUE_INDEX queue_idx, KQUEUE_TYPE* dst);
 
+#endif // KQUEUE_NO_INTERFACE
 
 
-#ifndef KQUEUE_HEADER_ONLY
+
+#ifndef KQUEUE_NO_IMPLEMENTATION
 
 static int __EXPAND_CONCAT(KQUEUE_NAME,_create)(struct KQUEUE_NAME* queue_dst, const KQUEUE_INDEX capacity, const KQUEUE_SUBQUEUE_INDEX queue_count) {
     // Allocate the container array
@@ -217,4 +218,4 @@ static int __EXPAND_CONCAT(KQUEUE_NAME,_pop)(struct KQUEUE_NAME* q, const KQUEUE
     return 0;
 }
 
-#endif
+#endif // KQUEUE_NO_IMPLEMENTATION

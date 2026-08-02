@@ -18,7 +18,7 @@
 
 #include "ctools/define_concat.h"
 
-#ifndef HEAP_HEADER_ONLY
+#ifndef HEAP_NO_IMPLEMENTATION
 #include <stdlib.h>
 
 #define STACK_NAME __EXPAND_CONCAT(HEAP_NAME,_stack)
@@ -31,6 +31,8 @@
 #endif
 
 
+
+#ifndef HEAP_NO_INTERFACE
 
 typedef struct HEAP_NAME {
     HEAP_INDEX size;
@@ -57,9 +59,11 @@ static inline HEAP_TYPE  __EXPAND_CONCAT(HEAP_NAME,_peek)   (HEAP_NAME* h);
 static inline int        __EXPAND_CONCAT(HEAP_NAME,_build)  (HEAP_TYPE* heap_array, const HEAP_INDEX heap_array_size);
 static inline HEAP_INDEX __EXPAND_CONCAT(HEAP_NAME,_verify) (const HEAP_TYPE* heap_array, const HEAP_INDEX heap_array_size);
 
+#endif // HEAP_NO_INTERFACE
 
 
-#ifndef HEAP_HEADER_ONLY
+
+#ifndef HEAP_NO_IMPLEMENTATION
 
 #ifndef HEAP_SWAP
 #define HEAP_SWAP(LHS, RHS) {\
@@ -218,7 +222,7 @@ static inline int __EXPAND_CONCAT(HEAP_NAME,_build)(HEAP_TYPE* heap_array, const
     const HEAP_INDEX first_parent = heap_array_size / 2 - 1;
 
     // Use a FILO processing queue
-    STACK_NAME nodes;
+    struct STACK_NAME nodes;
     if (__EXPAND_CONCAT(HEAP_NAME,_stack_create)(&nodes, heap_array_size / 2 + 1))
         return -1;
     
@@ -290,4 +294,4 @@ static inline HEAP_INDEX __EXPAND_CONCAT(HEAP_NAME,_verify)(const HEAP_TYPE* hea
 
 #undef HEAP_SWAP
 
-#endif // HEAP_HEADER_ONLY
+#endif // HEAP_NO_IMPLEMENTATION

@@ -22,15 +22,19 @@
 
 
 
-#include <errno.h>
-#include <stdlib.h>
 #include <stdbool.h>
-#include "define_concat.h"
+#include "ctools/define_concat.h"
+#ifndef STACK_NO_IMPLEMENTATION
+#include <stdlib.h>
+#include <errno.h>
+#endif
 #ifdef STACK_EXT_THREAD_SAFE
 #include <pthread.h>
 #endif
 
 
+
+#ifndef STACK_NO_INTERFACE
 
 struct STACK_NAME {
     STACK_INDEX size;
@@ -47,8 +51,6 @@ struct STACK_NAME {
     bool shutting_down;
     #endif
 };
-
-
 
 static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
     struct STACK_NAME* s
@@ -69,9 +71,11 @@ static inline int         __EXPAND_CONCAT(STACK_NAME,_push)    (struct STACK_NAM
 static inline int         __EXPAND_CONCAT(STACK_NAME,_pop)     (struct STACK_NAME* s, STACK_TYPE* dst);
 static inline int         __EXPAND_CONCAT(STACK_NAME,_clear)   (struct STACK_NAME* s);
 
+#endif // STACK_NO_INTERFACE
 
 
-#ifndef STACK_HEADER_ONLY
+
+#ifndef STACK_NO_IMPLEMENTATION
 
 static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
     struct STACK_NAME* s
@@ -331,4 +335,4 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_clear)(struct STACK_NAME* s) {
     return 0;
 }
 
-#endif // STACK_HEADER_ONLY
+#endif // STACK_NO_IMPLEMENTATION

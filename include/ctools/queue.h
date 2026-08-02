@@ -1,4 +1,3 @@
-
 #ifndef QUEUE_NAME
 #error "QUEUE_NAME must be defined before including queue.h"
 #endif
@@ -11,13 +10,18 @@
 #define QUEUE_INDEX unsigned int
 #endif
 
+
+
 #include <stdbool.h>
-#ifndef QUEUE_HEADER_ONLY
+#include "ctools/define_concat.h"
+#ifndef QUEUE_NO_IMPLEMENTATION
 #include <errno.h>
 #include <string.h>
 #endif
 
-#include "ctools/define_concat.h"
+
+
+#ifndef QUEUE_NO_INTERFACE
 
 typedef struct QUEUE_NAME {
     QUEUE_TYPE* array;
@@ -29,8 +33,6 @@ typedef struct QUEUE_NAME {
 
 static const QUEUE_INDEX __EXPAND_CONCAT(QUEUE_NAME,_max_size) = (QUEUE_INDEX)1 << (sizeof(QUEUE_INDEX) * 8 - 1 - !(((QUEUE_INDEX)-1) > 0));
 
-
-
 static        int         __EXPAND_CONCAT(QUEUE_NAME,_create)  (QUEUE_NAME* queue_dst, QUEUE_INDEX minimum_capacity);
 static inline void        __EXPAND_CONCAT(QUEUE_NAME,_destroy) (QUEUE_NAME* q);
 static inline void        __EXPAND_CONCAT(QUEUE_NAME,_peek)    (QUEUE_NAME* q, QUEUE_TYPE* dst);
@@ -41,9 +43,11 @@ static inline bool        __EXPAND_CONCAT(QUEUE_NAME,_is_empty)(QUEUE_NAME* q);
 static inline int         __EXPAND_CONCAT(QUEUE_NAME,_push)    (QUEUE_NAME* q, QUEUE_TYPE value);
 static inline int         __EXPAND_CONCAT(QUEUE_NAME,_pop)     (QUEUE_NAME* q, QUEUE_TYPE* dst);
 
+#endif // QUEUE_NO_INTERFACE
 
 
-#ifndef QUEUE_HEADER_ONLY
+
+#ifndef QUEUE_NO_IMPLEMENTATION
 
 static int __EXPAND_CONCAT(QUEUE_NAME,_create)(QUEUE_NAME* queue_dst, QUEUE_INDEX minimum_capacity) {
     // Skip if the requested size is not supported, given the QUEUE_INDEX type
@@ -127,4 +131,4 @@ static inline int __EXPAND_CONCAT(QUEUE_NAME,_pop)(QUEUE_NAME* q, QUEUE_TYPE* ds
     return 0;
 }
 
-#endif // QUEUE_HEADER_ONLY
+#endif // QUEUE_NO_IMPLEMENTATION

@@ -21,13 +21,20 @@
 
 
 #include "ctools/define_concat.h"
-#ifndef TWHEEL_HEADER_ONLY
+#ifndef TWHEEL_NO_IMPLEMENTATION
 #include <errno.h>
 #include <stdlib.h>
+#endif
+
+#ifdef TWHEEL_NO_INTERFACE
+#include "ctools/bitset_impl.h"
+#else
 #include "ctools/bitset.h"
 #endif
 
 
+
+#ifndef TWHEEL_NO_INTERFACE
 
 struct __EXPAND_CONCAT(TWHEEL_NAME,_timer) {
     TWHEEL_INDEX next;
@@ -84,9 +91,11 @@ static inline int         __EXPAND_CONCAT(TWHEEL_NAME,_cancel)  (struct TWHEEL_N
 static inline int         __EXPAND_CONCAT(TWHEEL_NAME,_pop)     (struct TWHEEL_NAME* tw, TWHEEL_TYPE* out_value);
 static inline TWHEEL_TICK __EXPAND_CONCAT(TWHEEL_NAME,_wait)    (struct TWHEEL_NAME* tw, TWHEEL_TICK* ticks);
 
+#endif // TWHEEL_NO_INTERFACE
 
 
-#ifndef TWHEEL_HEADER_ONLY
+
+#ifndef TWHEEL_NO_IMPLEMENTATION
 
 #ifndef MIN
 #define MIN(a,b) (((a)<(b))?(a):(b))
@@ -367,4 +376,4 @@ static inline TWHEEL_TICK __EXPAND_CONCAT(TWHEEL_NAME,_wait)(struct TWHEEL_NAME*
 }
 
 #undef MIN
-#endif // TWHEEL_HEADER_ONLY
+#endif // TWHEEL_NO_IMPLEMENTATION
