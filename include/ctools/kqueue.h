@@ -189,13 +189,13 @@ static int __EXPAND_CONCAT(KQUEUE_NAME,_push)(struct KQUEUE_NAME* q, const KQUEU
 }
 
 static int __EXPAND_CONCAT(KQUEUE_NAME,_pop)(struct KQUEUE_NAME* q, const KQUEUE_SUBQUEUE_INDEX queue_idx, KQUEUE_TYPE* dst) {
-    // Skip if queue is empty
-    if (__EXPAND_CONCAT(KQUEUE_NAME,_is_empty(q))) {
+    const KQUEUE_INDEX head = q->queues[queue_idx].head;
+
+    // Skip if sub-queue is empty
+    if (head == __EXPAND_CONCAT(KQUEUE_NAME,_max_size)) {
         errno = ENOENT;
         return -1;
     }
-
-    const KQUEUE_INDEX head = q->queues[queue_idx].head;
 
     // Return the value to the caller
     *dst = q->array[head];

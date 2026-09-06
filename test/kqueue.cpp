@@ -128,3 +128,12 @@ TEST(kqueue, fill_to_index_type_limits_over_multiple_queues) {
     for (int i = 0; i < my_kqueue_max_size; i++)
         EXPECT_EQ(expected[i], actual[i]);
 }
+
+TEST(kqueue, pop_from_empty_subqueue_whith_elements_in_other_subqueue) {
+    struct my_kqueue q;
+    EXPECT_EQ(my_kqueue_create(&q, 8, 4), 0);
+    EXPECT_EQ(my_kqueue_push(&q, 0, 42), 0);
+
+    int output = -1;
+    EXPECT_NE(my_kqueue_pop(&q, 1, &output), 0);
+}
