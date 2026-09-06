@@ -66,10 +66,16 @@ static inline int __EXPAND_CONCAT(STACK_NAME,_create)(
 
 static inline void        __EXPAND_CONCAT(STACK_NAME,_shutdown)(struct STACK_NAME* s);
 static inline void        __EXPAND_CONCAT(STACK_NAME,_destroy) (struct STACK_NAME* s);
-static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)    (struct STACK_NAME* s);
 static inline int         __EXPAND_CONCAT(STACK_NAME,_push)    (struct STACK_NAME* s, STACK_TYPE value);
 static inline int         __EXPAND_CONCAT(STACK_NAME,_pop)     (struct STACK_NAME* s, STACK_TYPE* dst);
 static inline int         __EXPAND_CONCAT(STACK_NAME,_clear)   (struct STACK_NAME* s);
+
+static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)
+#ifndef STACK_EXT_THREAD_SAFE
+(const struct STACK_NAME* s);
+#else
+(struct STACK_NAME* s);
+#endif // STACK_EXT_THREAD_SAFE
 
 #endif // STACK_NO_INTERFACE
 
@@ -158,7 +164,13 @@ static inline void __EXPAND_CONCAT(STACK_NAME,_destroy)(struct STACK_NAME* s) {
     #endif
 }
 
-static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)(struct STACK_NAME* s) {
+static inline STACK_INDEX __EXPAND_CONCAT(STACK_NAME,_size)
+#ifndef STACK_EXT_THREAD_SAFE
+(const struct STACK_NAME* s)
+#else
+(struct STACK_NAME* s)
+#endif // STACK_EXT_THREAD_SAFE
+{
     #ifdef STACK_EXT_THREAD_SAFE
 
     pthread_mutex_lock(&s->lock);
